@@ -3,6 +3,7 @@
 ;; Copyright (C) 2012  Jonathan Waltman
 
 ;; Author: Jonathan Waltman <jonathan.waltman@gmail.com>
+;; URL: https://github.com/JonWaltman/pcmpl-args.el
 ;; Keywords: abbrev completion convenience processes terminals unix
 ;; Version: 0.1
 

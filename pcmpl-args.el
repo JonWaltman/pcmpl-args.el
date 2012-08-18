@@ -126,17 +126,14 @@ performed if `pcmpl-args-debug' is non-nil."
     (replace-regexp-in-string "\\`[ \t\n\r\v]+\\|[ \t\n\r\v]+\\'"
                               "" string)))
 
-(defun pcmpl-args-pad-string (string width)
+(defun pcmpl-args-pad-or-truncate-string (string width)
   "Pad STRING with spaces to make it WIDTH characters long."
-  (if (>= (length string) width)
-      string
-    (concat string (make-string (- width (length string)) ?\s))))
-
-(defun pcmpl-args-truncate-string (string width)
-  "Truncate STRING to no more than WIDTH characters."
-  (if (> width (length string))
-      string
-    (substring string 0 width)))
+  (cond ((= (length string) width)
+         string)
+        ((< (length string) width)
+         (concat string (make-string (- width (length string)) ?\s)))
+        (t
+         (substring string 0 width))))
 
 (defun pcmpl-args-partition-string (regexp string)
   "Split a STRING on the first occurrence of REGEXP.
@@ -682,15 +679,15 @@ Returns a list of cons cells of the form:
                     (< (current-column) doc-column))
             (setq doc-column nil)))
         (goto-char doc-end-pos)
-        (save-excursion
-          (goto-char doc-beg-pos)
-          (setq doc-end-pos
-                (min (+ (point) 300)
-                     (or (and (re-search-forward
-                               "\\=\\(.\\|\n\\)+?\\.\\([ ][ ]\\|[ ]*$\\)"
-                               doc-end-pos t)
-                              (match-beginning 2))
-                         doc-end-pos))))
+        ;; (save-excursion
+        ;;   (goto-char doc-beg-pos)
+        ;;   (setq doc-end-pos
+        ;;         (min (+ (point) 300)
+        ;;              (or (and (re-search-forward
+        ;;                        "\\=\\(.\\|\n\\)+?\\.\\([ ][ ]\\|[ ]*$\\)"
+        ;;                        doc-end-pos t)
+        ;;                       (match-beginning 2))
+        ;;                  doc-end-pos))))
         (setq doc (replace-regexp-in-string
                    " *\n *" " "
                    (pcmpl-args-strip
@@ -802,10 +799,9 @@ ARGS are passed to `pcmpl-args-parse-help-buffer'."
           (setq s (concat "[" s "]")))
         (setq name (concat name (propertize (upcase s) 'face font-lock-type-face)))))
     (when (not short)
-      (setq name (format "%-22s  %-55s" name
+      (setq name (format "%-22s  %s" name
 			 (propertize (or (plist-get spec :help) "")
-				     'face font-lock-doc-face))
-	    name (pcmpl-args-truncate-string name 79)))
+				     'face font-lock-doc-face))))
     name))
 
 (defun pcmpl-args-format-argspecs (specs)
@@ -1175,8 +1171,8 @@ Returns a list containing the following:
 			 `(metadata
 			   (category . option)
 			   (annotation-function
-			    . ,(lambda (s)
-                                 (gethash s tbl)))))
+			    . ,(pcmpl-args-make-completion-annotator
+                                tbl))))
 			(t
 			 (complete-with-action a tbl s p))))
 		suffix))
@@ -1204,8 +1200,8 @@ Returns a list containing the following:
 				     `(metadata
 				       (category . option)
 				       (annotation-function
-					. ,(lambda (s)
-					     (gethash s tbl)))))
+					. ,(pcmpl-args-make-completion-annotator
+                                            tbl))))
 				    (t
 				     (complete-with-action
 				      a tbl s p))))))))))
@@ -1325,6 +1321,38 @@ but returns METADATA when requested."
      (t
       (complete-with-action action table string pred)))))
 
+(defun pcmpl-args-guess-display-width ()
+  (or (let* ((comps-buf (get-buffer "*Completions*"))
+             (comps-win (or (and comps-buf (get-buffer-window comps-buf))
+                            (next-window))))
+        (when comps-win
+          (window-width comps-win)))
+      ;; Completions will be displayed in a new window.
+      (save-excursion
+        (save-window-excursion
+          (let ((config (current-window-configuration)))
+            (unwind-protect
+                (window-width (split-window-sensibly))
+              (set-window-configuration config)))))))
+
+(defun pcmpl-args-make-completion-annotator (table-or-function)
+  (let ((width (pcmpl-args-guess-display-width)))
+    (lambda (string)
+      (when pcmpl-args-annotation-style
+        (let ((retval
+               (cond ((functionp table-or-function)
+                      (funcall table-or-function string))
+                     ((hash-table-p table-or-function)
+                      (gethash string table-or-function))
+                     (t
+                      (let ((cell (assoc string table-or-function)))
+                        (if (atom (cdr cell))
+                            (cdr cell)
+                          (cadr cell)))))))
+          (when retval
+            (pcmpl-args-pad-or-truncate-string
+             retval (- width (length string)))))))))
+
 (defun pcmpl-args-completion-table-with-annotations (alist-or-hash
 						     &optional metadata)
   "Create a completion-table that completes like ALIST-OR-HASH
@@ -1353,12 +1381,9 @@ mapping completions to their descriptions."
                        (cadr cell))))
               (puthash (propertize k 'help-echo v)
                        (and (eq pcmpl-args-annotation-style 'long)
-			    (substring
-			     (pcmpl-args-truncate-string
-			      (concat (pcmpl-args-pad-string k maxwidth)
-				      "  "
-				      (pcmpl-args-pad-string v (- 79 maxwidth))) 79)
-			     (length k)))
+                            (concat (and (wholenump (- maxwidth (length k)))
+                                         (make-string (- maxwidth (length k)) ?\s))
+                                    "  " v))
                        table))))
       (maphash (lambda (k _v)
                  (setq maxwidth (max maxwidth (length k))))
@@ -1367,24 +1392,22 @@ mapping completions to their descriptions."
       (maphash (lambda (k v)
                  (puthash (propertize k 'help-echo v)
                           (and (eq pcmpl-args-annotation-style 'long)
-                               (substring
-				(pcmpl-args-truncate-string
-				 (concat (pcmpl-args-pad-string k maxwidth)
-					 "  "
-					 (pcmpl-args-pad-string v (- 79 maxwidth))) 79)
-				(length k)))
+                               (concat (and (wholenump (- maxwidth (length k)))
+                                            (make-string (- maxwidth (length k)) ?\s))
+                                       "  " v))
                           table))
                alist-or-hash))
     (setq alist-or-hash nil)
     (pcmpl-args-completion-table-with-metadata
      (append (or metadata '(metadata))
              (list (cons 'annotation-function
-                         (lambda (s)
-			   (or (gethash s table)
-			       (let* ((us (pcomplete-unquote-argument s))
-				      (d (gethash us table)))
-				 (assert (> (length s) (length us)) t)
-				 (and d (substring d (- (length s) (length us))))))))))
+                         (pcmpl-args-make-completion-annotator
+                          (lambda (s)
+                            (or (gethash s table)
+                                (let* ((us (pcomplete-unquote-argument s))
+                                       (d (gethash us table)))
+                                  (assert (> (length s) (length us)) t)
+                                  (and d (substring d (- (length s) (length us)))))))))))
      table)))
 
 (defun pcmpl-args-pare-completion-table (new-table old-table)
@@ -2180,8 +2203,9 @@ options found in its man page."
    ((eq action 'metadata)
     `(metadata (category . manual)
                (annotation-function
-                . ,(lambda (s)
-                     (get-text-property (1- (length s)) 'help-echo s)))))
+                . ,(pcmpl-args-make-completion-annotator
+                    (lambda (s)
+                      (get-text-property (1- (length s)) 'help-echo s))))))
    (t
     (complete-with-action
      action
@@ -2202,9 +2226,7 @@ options found in its man page."
         (let* ((page (match-string 1 l))
                (desc (match-string 2 l)))
           (push (cons page (if (equal pcmpl-args-annotation-style 'long)
-                               (pcmpl-args-truncate-string
-                                (pcmpl-args-pad-string desc 79)
-                                (- 79 (length page)))
+                               desc
                              (when (string-match "\\`\\([ ]+(.*?)\\)" desc)
                                (match-string 1 desc))))
                 table)))
@@ -2220,10 +2242,7 @@ options found in its man page."
                  ("9" "Kernel routines [Non standard]")))
         (push (cons (car section)
                     (when (equal pcmpl-args-annotation-style 'long)
-                      (pcmpl-args-truncate-string
-                       (pcmpl-args-pad-string
-                        (concat "                    - " (cadr section))
-                        79) (- 79 (length (car section))))))
+                      (concat "                    - " (cadr section))))
               table))
       table)))
 

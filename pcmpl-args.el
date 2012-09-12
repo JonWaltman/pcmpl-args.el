@@ -1322,18 +1322,16 @@ but returns METADATA when requested."
       (complete-with-action action table string pred)))))
 
 (defun pcmpl-args-guess-display-width ()
-  (or (let* ((comps-buf (get-buffer "*Completions*"))
-             (comps-win (or (and comps-buf (get-buffer-window comps-buf))
-                            (next-window))))
-        (when comps-win
-          (window-width comps-win)))
-      ;; Completions will be displayed in a new window.
-      (save-excursion
-        (save-window-excursion
-          (let ((config (current-window-configuration)))
-            (unwind-protect
-                (window-width (split-window-sensibly))
-              (set-window-configuration config)))))))
+  (save-excursion
+    (save-window-excursion
+      (let ((config (current-window-configuration)))
+        (unwind-protect
+            (let ((buff (get-buffer "*Completions*")))
+              (prog1 (1- (window-width
+                          (display-buffer (get-buffer-create "*Completions*"))))
+                (unless buff
+                  (kill-buffer "*Completions*"))))
+          (set-window-configuration config))))))
 
 (defun pcmpl-args-make-completion-annotator (table-or-function)
   (let ((width (pcmpl-args-guess-display-width)))

@@ -5,56 +5,90 @@
 ;; Author: Jonathan Waltman <jonathan.waltman@gmail.com>
 ;; URL: https://github.com/JonWaltman/pcmpl-args.el
 ;; Keywords: abbrev completion convenience processes terminals unix
-;; Version: 0.1
+;; Created: 25 Jul 2012
+;; Version: 0.1.1
+;; Compatibility: GNU Emacs: 24.x
 
 ;; This file is not part of GNU Emacs.
-
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
-;; This package provides option and argument completion for shell
-;; commands.  It intends to make shell completion in Emacs comparable
-;; to the rather excellent completion provided by both Bash and Zsh.
+;; This package extends option and argument completion of shell
+;; commands read by Emacs.  It is intended to make shell completion in
+;; Emacs comparable to the rather excellent completion provided by
+;; both Bash and Zsh.
 ;;
-;; It uses `pcomplete' to define completion handlers which are used
-;; whenever shell command completion is performed.  This includes when
-;; commands are read in the minibuffer via `shell-command' (M-!) or in
-;; `shell-mode'.
+;; This package uses `pcomplete' to define completion handlers which
+;; are used whenever shell completion is performed.  This includes
+;; when commands are read in the minibuffer via `shell-command' (M-!)
+;; or in `shell-mode'.
 ;;
-;; To use this package, save `pcmpl-args.el' to your `load-path' and add
-;; the following to your `init.el':
+;; Completion support is provided for many different commands
+;; including:
+;;
+;;   - GNU core utilities (ls, rm, mv, date, sort, cut, printf, ...)
+;;
+;;   - Built-in shell commands (if, test, time, ...)
+;;
+;;   - Various GNU/Linux commands (find, xargs, grep, man, tar, ...)
+;;
+;;   - Version control systems (bzr, git, hg, ...)
+;;
+
+;; Installation:
+;;
+;; To use this package, save `pcmpl-args.el' to your `load-path' and
+;; add the following to your `init.el':
 ;;
 ;;     (require 'pcmpl-args)
 ;;
 ;; Note: This package uses `lexical-binding' so it probably will not
 ;; work with older versions of Emacs (prior to 24.1).
 ;;
-;; The following existing pcomplete functions will be redefined:
+;; Note: This package redefines the following functions:
 ;;
-;;     `pcomplete/bzip2'
-;;     `pcomplete/chgrp'
-;;     `pcomplete/chown'
-;;     `pcomplete/gdb'
-;;     `pcomplete/gzip'
-;;     `pcomplete/make'
-;;     `pcomplete/rm'
-;;     `pcomplete/rmdir'
-;;     `pcomplete/tar'
-;;     `pcomplete/time'
-;;     `pcomplete/which'
-;;     `pcomplete/xargs'
+;;   `pcomplete/bzip2'
+;;   `pcomplete/chgrp'
+;;   `pcomplete/chown'
+;;   `pcomplete/gdb'
+;;   `pcomplete/gzip'
+;;   `pcomplete/make'
+;;   `pcomplete/rm'
+;;   `pcomplete/rmdir'
+;;   `pcomplete/tar'
+;;   `pcomplete/time'
+;;   `pcomplete/which'
+;;   `pcomplete/xargs'
+;;
+
+;; Defining new completion commands:
+;;
+;; This package contains a number of utilities for defining new
+;; pcomplete completion commands:
+;;
+;; `pcmpl-args-pcomplete'
+;;      Can be used to define completion for commands that have
+;;      complex option and argument parsing.
+;;
+;; `pcmpl-args-pcomplete-on-help'
+;;      Completion via parsing the output of `COMMAND --help'.
+;;
+;; `pcmpl-args-pcomplete-on-man'
+;;      Completion via parsing the output of `man COMMAND'.
+;;
 
 ;;; Code:
 
@@ -233,8 +267,8 @@ SPECS should be a list of the form:
 TYPE is a symbol and should be either `argument' or `option'.
 
 If the TYPE is `argument' then NAME is either an integer
-specifying the nth positional argument or the symbol
-`*' which specifies any number of arguments.
+specifying the nth positional argument or the symbol `*' which
+specifies any number of arguments.
 
 If the TYPE is `option' then NAME is a string or a list of
 strings specifying the name, style, and possibly the
@@ -247,22 +281,23 @@ sub-arguments of the option.  The following forms are supported:
     \"--option<ARG>\"       - Option with one required argument.
     \"--option=ARG\"        - Option with one argument that is either
                               seperate or inline delimited by \"=\".
-    \"--option[=ARG]\"      - Option with one optional argument that is either
-                              seperate or inline delimited by \"=\".
+    \"--option[=ARG]\"      - Option with one optional argument that
+                              is either seperate or inline delimited
+                              by \"=\".
 
 These forms work for both long-named options (those beginning
 with \"--\") and single-letter options.
 
-Multiple options can be specified in the same NAME by
-delimiting them with commas.  For example:
+Multiple options can be specified in the same NAME by delimiting
+them with commas.  For example:
 
-    \"-o, --option\"           - Two options that both have no arguments.
-    \"-o, --option ARG\"       - Two options that both have one argument.
-                                 same as \"-o ARG, -option ARG\"
-    \"-o, --option[=ARG]\"     - Two options with one optional argument;
-                                 same as \"-o[ARG], -option[=ARG]\"
-    \"-o, --option=ARG\"       - Two options with one argument;
-                                 same as \"-o ARG, -option=ARG\"
+    \"-o, --option\"        - Two options that both have no arguments.
+    \"-o, --option ARG\"    - Two options that both have one argument.
+                              same as \"-o ARG, -option ARG\"
+    \"-o, --option[=ARG]\"  - Two options with one optional argument;
+                              same as \"-o[ARG], -option[=ARG]\"
+    \"-o, --option=ARG\"    - Two options with one argument;
+                              same as \"-o ARG, -option=ARG\"
 
 A description can also be specified in NAME by delimiting it with
 multiple spaces or a tab character.  For example:
@@ -286,32 +321,32 @@ the form:
       will contain the string being completed.
 
   `(:lambda FUNCTION)'
-      FUNCTION is called when completion is performed and it should
-      return a completion-table.  The function is called with one
-      argument, an alist of the options and arguments.
+      FUNCTION is called when completion is performed and it
+      should return a completion-table.  The function is called
+      with one argument, an alist of the options and arguments.
 
   `t'
-      The symbol `t' means to use the completion-table
-      returned by `pcmpl-args-guess-completions'.
+      The symbol `t' means to use the completion-table returned
+      by `pcmpl-args-guess-completions'.
 
   `none'
       The symbol `none' means that no completions can be
-      generated and prevents the fallback behaviour of
-      completing file names.
+      generated and prevents the fallback behaviour of completing
+      file names.
 
   SUFFIX is optional and it specifies a string to insert after
   completion is performed.
 
-PROPERTIES are optional and consists of keywords followed by
-a value.  The following are recognized:
+PROPERTIES are optional and consists of keywords followed by a
+value.  The following are recognized:
 
 :help
     String describing the option.
 
 :excludes
     List of option and argument names that will not be completed
-    after this point.  Also, the symbol `-' excludes options and `:'
-    excludes positional arguments.
+    after this point.  Also, the symbol `-' excludes options and
+    `:' excludes positional arguments.
 
 :repeat
     Non-nil value specifies that this option or argument can occur
@@ -324,7 +359,8 @@ a value.  The following are recognized:
         `seperate-or-inline' - arguments can be inline or not
 
 :delim
-    String specifying the delimiter used for options with inline arguments.
+    String specifying the delimiter used for options with inline
+    arguments.
 
 :suffix
     String to insert after completion is performed.
@@ -1587,12 +1623,14 @@ Function is called with one argument, the word to complete.")
 ;;; Pcomplete completion functions
 
 (defun pcmpl-args-pcomplete (argspecs)
-  "Parse and complete `pcomplete-args' according to ARGSPECS.
+  "Complete the current pcomplete arguments according to ARGSPECS.
 Does not return.  Throws the tag `pcomplete-completions' with the
 value of the completion-table found by calling
-`pcmpl-args-parse-arguments' with the current pcomplete arguments.
+`pcmpl-args-parse-arguments' with the current value of
+`pcomplete-args' and ARGSPECS.
 
-ARGSPECS should be value a created with `pcmpl-args-make-argspecs'."
+ARGSPECS should be value a created with
+`pcmpl-args-make-argspecs'."
   (noreturn
    (progn
      (pcmpl-args-debug "\n\n================================")
@@ -1653,7 +1691,7 @@ ARGSPECS should be value a created with `pcmpl-args-make-argspecs'."
                   (table table))))))))
 
 (defun pcmpl-args-pcomplete-on-help ()
-  "Perform pcomplete completion on the help output of the current command.
+  "Perform completion on the help output of the current command.
 The current command is called with one option `--help' and its
 output is processed via `pcmpl-args-parse-help-buffer'.
 
@@ -3514,6 +3552,43 @@ will print completions for `ls -'."
                       n-cmds (- (float-time) start-time)))
       (pcmpl-args-cache-flush t)
       nil)))
+
+(defun pcmpl-args--print-readme ()
+  "Print the commentary in a form suitable for a README file."
+  (save-excursion
+    (let (header meta copyright commentary)
+      (goto-char (point-min))
+      (setq header
+            (buffer-substring
+             (progn (re-search-forward ";+ ")
+                    (point))
+             (progn (re-search-forward " +-\\*-")
+                    (match-beginning 0))))
+      (forward-line 3)
+      (setq meta
+            (buffer-substring (point)
+                              (progn (forward-paragraph)
+                                     (point)))
+            copyright
+            (buffer-substring (point)
+                              (progn (re-search-forward "^;+ Commentary:")
+                                     (forward-line -1)
+                                     (point))))
+      (forward-line 3)
+      (setq commentary
+            (buffer-substring (point)
+                              (progn (re-search-forward "^;+ Code:")
+                                     (forward-line -1)
+                                     (point))))
+      (princ (replace-regexp-in-string
+              "^;;;?\\( \\| *$\\)" ""
+              (concat header "\n"
+                      (make-string (length header) ?=) "\n\n"
+                      commentary "\n"
+                      (make-string 72 ?-) "\n"
+                      copyright "\n"
+                      (make-string 72 ?-) "\n"
+                      meta))))))
 
 ;; (ert-deftest pcmpl-args-test-make-argspecs  ()
 ;;   (let ((opts

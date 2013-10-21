@@ -785,7 +785,7 @@ insert its content into the current buffer.")
     ;; line, reducing the number of false positives that result from lines
     ;; starting with `-' that aren't really options.
     (push "MANWIDTH=10000" process-environment)
-    (pcmpl-args-process-file "man" "--nj" "--nh" "--" name)))
+    (pcmpl-args-process-file "man" name)))
 
 (defun pcmpl-args-extract-argspecs-from-manpage (name &rest args)
   "Return a list of argspecs by parsing the manpage identified by NAME.
@@ -3640,10 +3640,6 @@ will print completions for `ls -'."
 ;;   (should (member "ls" (pcmpl-args--debug-all-completions "xargs -d '\\n' ls")))
 ;;   (should (member "--format" (pcmpl-args--debug-all-completions "xargs -d '\\n' ls -")))
 ;;   (should (member "across" (pcmpl-args--debug-all-completions "xargs -d '\\n' ls --format "))))
-;;
-;; (ert-deftest pcmpl-args-test-man  ()
-;;   (should (member "--nj" (pcmpl-args--debug-all-completions "man -")))
-;;   (should (member "ascii" (pcmpl-args--debug-all-completions "man 7 a"))))
 ;;
 ;; (ert-deftest pcmpl-args-test-bzr  ()
 ;;   (should (member "help" (pcmpl-args--debug-all-completions "bzr ")))

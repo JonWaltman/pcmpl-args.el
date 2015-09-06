@@ -3135,14 +3135,15 @@ options found in its man page."
          cmds `(metadata (category . git-command)))))))
 
 (defun pcmpl-args-git-extract-argspecs-from-help (cmd)
-  (ignore-errors (kill-buffer " *pcmpl-args-output*"))
-  (with-current-buffer (get-buffer-create " *pcmpl-args-output*")
-    (erase-buffer)
-    (let ((process-environment process-environment))
-      (push "MANWIDTH=10000" process-environment)
-      (pcmpl-args-process-file "git" "help" "--man" "--" cmd)
-      (goto-char (point-min))
-      (pcmpl-args-extract-argspecs-from-buffer))))
+  (pcmpl-args-cached (cons 'git-commands cmd) t
+    (ignore-errors (kill-buffer " *pcmpl-args-output*"))
+    (with-current-buffer (get-buffer-create " *pcmpl-args-output*")
+      (erase-buffer)
+      (let ((process-environment process-environment))
+        (push "MANWIDTH=10000" process-environment)
+        (pcmpl-args-process-file "git" "help" "--man" "--" cmd)
+        (goto-char (point-min))
+        (pcmpl-args-extract-argspecs-from-buffer)))))
 
 (defun pcmpl-args-git-refs ()
   (pcmpl-args-process-lines "git" "rev-parse" "--abbrev-ref" "--all"))

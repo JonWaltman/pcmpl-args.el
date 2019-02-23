@@ -2,7 +2,7 @@
 
 [[https://melpa.org/#/pcmpl-args][file:https://melpa.org/packages/pcmpl-args-badge.svg]]
 
-=pcmpl-args= extends option and argument completion of shell commands
+pcmpl-args extends option and argument completion of shell commands
 read by Emacs. It is intended to make shell completion in Emacs
 comparable to the rather excellent completion provided by both Bash
 and Zsh.
@@ -24,8 +24,8 @@ Completion support is provided for many different commands including:
 
 ** Installation
 
-To use this package, install =pcmpl-args.el= via your package manager from melpa and add
-the following to your =init.el=:
+To use this package, install pcmpl-args via your package manager
+from [[https://melpa.org/#/getting-started][Melpa]] and add the following to your init.el:
 
 #+BEGIN_SRC emacs-lisp
   (require 'pcmpl-args)
@@ -51,11 +51,11 @@ Note: This package redefines the following functions:
 This package contains a number of utilities for defining new
 =pcomplete= completion commands:
 
-- =pcmpl-args-pcomplete= :: Can be used to define completion for
+- pcmpl-args-pcomplete :: Can be used to define completion for
      commands that have complex option and argument parsing.
 
-- =pcmpl-args-pcomplete-on-help= :: Completion via parsing the output
+- pcmpl-args-pcomplete-on-help :: Completion via parsing the output
      of ~COMMAND --help~.
 
-- =pcmpl-args-pcomplete-on-man= :: Completion via parsing the output
+- pcmpl-args-pcomplete-on-man :: Completion via parsing the output
      of ~man COMMAND~.

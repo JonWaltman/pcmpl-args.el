@@ -184,9 +184,12 @@ If the exit status is non-zero, an error is signaled."
   (pcmpl-args-debug "!pcmpl-args-process-file: %S" (cons program args))
   (let* ((retcode (apply 'process-file program nil t nil args)))
     (when (not (equal 0 retcode))
-      (error "%s" (if (equal (pcmpl-args-strip (buffer-string)) "")
-                      (format "Shell command failed with code %S" retcode)
-                    (pcmpl-args-strip (buffer-string)))))
+      (let ((pcmpl-args-debug t))
+        (pcmpl-args-debug
+         "Error: %s"
+         (if (equal (pcmpl-args-strip (buffer-string)) "")
+             (format "Shell command failed with code %S" retcode)
+           (pcmpl-args-strip (buffer-string))))))
     retcode))
 
 (defun pcmpl-args-process-lines (program &rest args)

@@ -788,7 +788,8 @@ insert its content into the current buffer.")
     ;; line, reducing the number of false positives that result from lines
     ;; starting with `-' that aren't really options.
     (push "MANWIDTH=10000" process-environment)
-    (pcmpl-args-process-file "man" name)))
+    (pcmpl-args-process-file
+     shell-file-name shell-command-switch (format "man %s | col -b" name))))
 
 (defun pcmpl-args-extract-argspecs-from-manpage (name &rest args)
   "Return a list of argspecs by parsing the manpage identified by NAME.

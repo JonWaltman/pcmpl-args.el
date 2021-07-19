@@ -3129,10 +3129,15 @@ options found in its man page."
       (pcmpl-args-process-file "git" "help" "-a")
       (goto-char (point-min))
       (let ((cmds (copy-sequence pcmpl-args-git-commands)))
-        (while (re-search-forward "^[ ]+[[:alpha:]].*$" nil t)
-          (dolist (cmd (split-string (match-string 0)))
+        (while (re-search-forward
+                "^[\t\s]+\\([^[:space:]]+\\)[\t\s]*\\([^[:space:]]*\\)$"
+                nil t)
+          (let ((cmd (match-string 1))
+                (help (match-string 2)))
+            (when (member help '(nil ""))
+              (setq help "..."))
             (unless (assoc cmd cmds)
-              (push (list cmd "...") cmds))))
+              (push (list cmd help) cmds))))
         (setq cmds
               (sort cmds (lambda (a b) (string-lessp (car a) (car b)))))
         (pcmpl-args-completion-table-with-annotations

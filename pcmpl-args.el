@@ -111,7 +111,9 @@ See also `pcmpl-args-debug-parse-help'."
 
 (defcustom pcmpl-args-debug-parse-help nil
   "Non-nil to highlight matches when parsing help buffers.
-See `pcmpl-args-parse-help-buffer'.")
+See `pcmpl-args-parse-help-buffer'."
+  :type 'boolean
+  :group 'pcmpl-args)
 
 (defcustom pcmpl-args-cache-default-duration 10.0
   "Default number of seconds to cache completions.
@@ -128,7 +130,7 @@ periods of time. See `pcmpl-args-cache-max-duration'."
 (defcustom pcmpl-args-annotation-style 'long
   "Control how completions are annotated.
 
-`nil'
+nil
     No annotations.
 
 `long'
@@ -329,8 +331,8 @@ the form:
       should return a completion-table.  The function is called
       with one argument, an alist of the options and arguments.
 
-  `t'
-      The symbol `t' means to use the completion-table returned
+  t
+      The symbol t means to use the completion-table returned
       by `pcmpl-args-guess-completions'.
 
   `none'
@@ -2265,7 +2267,7 @@ options found in its man page."
                    (pcmpl-args-process-lines "man" "-k" ".")))
         (or (string-match
              "\\`\\([^ ]+\\)\\(.*\\)\\'" l)
-            (error "bad apropos"))
+            (error "Bad apropos"))
         (let* ((page (match-string 1 l))
                (desc (match-string 2 l)))
           (push (cons page (if (equal pcmpl-args-annotation-style 'long)
@@ -3443,7 +3445,7 @@ Example:
 
 will print completions for `ls -'."
   (if (/= 1 (length command-line-args-left))
-      (error "pcmpl-args.el: Expected one argument")
+      (error "Expected one argument")
     (message "# Completions for %S" (car command-line-args-left)))
   (let* ((str (pop command-line-args-left))
          (result (or (pcmpl-args--debug-completion-at-point-data str)

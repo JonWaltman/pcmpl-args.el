@@ -8,6 +8,7 @@
 ;; Created: 25 Jul 2012
 ;; Version: 0.1.1
 ;; Compatibility: GNU Emacs: 24.x
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -92,7 +93,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'pcomplete)
 (require 'pcmpl-unix)
 (require 'pcmpl-linux)
@@ -251,11 +252,11 @@ element.  Each element of this list is of the form:
              (cond ((stringp (car-safe hint))
                     (when (let (case-fold-search)
                             (string-match (car hint) opt=arg))
-                      (return (cadr hint))))
+                      (cl-return (cadr hint))))
                    ((functionp hint)
                     (let ((result (funcall hint optname optarg)))
                       (when result
-                        (return result))))
+                        (cl-return result))))
                    (t
                     (error
                      "Invalid value in `pcmpl-args-guess-completions-hints': %S" hint))))))))
@@ -409,7 +410,7 @@ The value returned can be passed to `pcmpl-args-pcomplete'."
             (push :actions props))
           (let ((lst props))
             (while lst
-              (assert (keywordp (car lst)) t)
+              (cl-assert (keywordp (car lst)) t)
               (pop lst)
               (pop lst)))
           (dolist (el
@@ -458,12 +459,12 @@ The value returned can be passed to `pcmpl-args-pcomplete'."
       rv)))
 
 (defun pcmpl-args--make-argspec-argument (name &optional props)
-  (assert (or (numberp name) (memq name '(*))) t)
+  (cl-assert (or (numberp name) (memq name '(*))) t)
   (list (apply 'list :name name :type 'argument (copy-sequence props))))
 
 (defun pcmpl-args--make-argspec-option (options-list &optional plist no-share-args)
   (when (atom options-list) (setq options-list (list options-list)))
-  (mapc (lambda (o) (assert (stringp o) t)) options-list)
+  (mapc (lambda (o) (cl-assert (stringp o) t)) options-list)
   (setq plist (copy-sequence plist))
   (let (option-strings argspecs)
     ;; Flatten options-list to single options.
@@ -497,8 +498,9 @@ The value returned can be passed to `pcmpl-args-pcomplete'."
           (pcmpl-args-debug (propertize "Bad option: %S" 'face 'error) opt-str)
           (setq optname opt-str
                 argstring nil))
-        (assert (= (length (concat optname argstring))
-                   (length opt-str)) t)
+        (cl-assert (= (length (concat optname argstring))
+                      (length opt-str))
+                   t)
         (if (null argstring)
             (push (list :name optname
                         :type 'option
@@ -747,7 +749,7 @@ Returns a list of cons cells of the form:
           (when (and lst (string= "" (cdr el)))
             (setcdr el (dolist (p lst)
                          (when (not (string= "" (cdr p)))
-                           (return (cdr p))))))))
+                           (cl-return (cdr p))))))))
       (when pcmpl-args-debug
         (pcmpl-args-debug "Found %s options in %f seconds"
                           (length opts) (- (float-time) start-time)))
@@ -911,36 +913,36 @@ Returns a list containing the following:
 (defun pcmpl-args--sanity-check (arguments argspecs seen)
   (when pcmpl-args-debug
     (dolist (arg arguments)
-      (assert (stringp arg) t))
+      (cl-assert (stringp arg) t))
     (dolist (spec argspecs)
-      (assert (and spec (listp spec)) t)
+      (cl-assert (and spec (listp spec)) t)
       (let ((tmp spec))
         (while tmp
-          (assert (keywordp (car tmp)) t)
+          (cl-assert (keywordp (car tmp)) t)
           (pop tmp)
-          (assert (not (keywordp (car tmp))) t)
+          (cl-assert (not (keywordp (car tmp))) t)
           (pop tmp)))
-      (assert (plist-get spec :name) t)
-      (assert (plist-get spec :type) t)
+      (cl-assert (plist-get spec :name) t)
+      (cl-assert (plist-get spec :type) t)
       (dolist (action (plist-get spec :action))
-        (assert (and action (listp action)) t)
-        (assert (stringp (car action)) t)
-        (assert (and action (or (= 3 (length action))
+        (cl-assert (and action (listp action)) t)
+        (cl-assert (stringp (car action)) t)
+        (cl-assert (and action (or (= 3 (length action))
                                 (= 2 (length action)))))))
     (dolist (state seen)
-      (assert (and state (listp state)) t)
+      (cl-assert (and state (listp state)) t)
       (let ((tmp state))
         (while tmp
-          (assert (keywordp (car tmp)) t)
+          (cl-assert (keywordp (car tmp)) t)
           (pop tmp)
-          (assert (not (keywordp (car tmp))) t)
+          (cl-assert (not (keywordp (car tmp))) t)
           (pop tmp)))
-      (assert (stringp (plist-get state :stub)) t)
-      (assert (member :name state) t)
-      (assert (member :action state) t)
+      (cl-assert (stringp (plist-get state :stub)) t)
+      (cl-assert (member :name state) t)
+      (cl-assert (member :action state) t)
       (when (plist-get state :action)
-        (assert (stringp (car (plist-get state :action))) t)
-        (assert (and (plist-get state :action)
+        (cl-assert (stringp (car (plist-get state :action))) t)
+        (cl-assert (and (plist-get state :action)
                      (or (= 3 (length (plist-get state :action)))
                          (= 2 (length (plist-get state :action)))) t)))))
   (list arguments argspecs seen))
@@ -1015,7 +1017,7 @@ Returns a list containing the following:
                             i (car arguments) (elt actions (min i (1- (length actions)))))
           (push (pop arguments) vals)
           (setq action (elt actions (min i (1- (length actions)))))
-          (incf i)))
+          (cl-incf i)))
       (setq vals (nreverse vals))
       (push (list :context (if argument-specs 'argument 'unknown-argument)
                   :name (or (plist-get spec :dest)
@@ -1065,7 +1067,7 @@ Returns a list containing the following:
                     nil)
                    ((and (eq 'inline (plist-get argspec :style))
                          (not (string-prefix-p name-delim stub)))
-                    (decf nargs))
+                    (cl-decf nargs))
                    ((and (eq 'seperate-or-inline (plist-get argspec :style))
                          (not (string-prefix-p name-delim stub)))
                     nil)
@@ -1074,10 +1076,10 @@ Returns a list containing the following:
                          arguments)
                     nil)
                    ((memq (plist-get argspec :style) '(seperate-or-inline inline))
-                    (assert (string-prefix-p name-delim stub) t)
+                    (cl-assert (string-prefix-p name-delim stub) t)
                     (push (substring stub (length name-delim)) arguments)
                     (setq stub (substring stub 0 (length (plist-get argspec :name))))
-                    (assert (equal stub (plist-get argspec :name)) t)))
+                    (cl-assert (equal stub (plist-get argspec :name)) t)))
              (dotimes (i nargs)
                (when arguments
                  (pcmpl-args-debug "Parsed optarg: %S --> %S"
@@ -1139,7 +1141,7 @@ Returns a list containing the following:
              (pcmpl-args--parse-option arguments argspecs seen))))))
 
 (defun pcmpl-args--find-option (optname argspecs)
-  (assert (stringp optname) t)
+  (cl-assert (stringp optname) t)
   (or (let (found)
         (dolist (spec argspecs)
           (when (and (eq (plist-get spec :type) 'option)
@@ -1162,7 +1164,7 @@ Returns a list containing the following:
         (car accum))))
 
 (defun pcmpl-args--find-ambiguous-options (optname argspecs)
-  (assert (stringp optname) t)
+  (cl-assert (stringp optname) t)
   (let (accum)
     (dolist (spec argspecs)
       (when (and (eq (plist-get spec :type) 'option)
@@ -1171,7 +1173,7 @@ Returns a list containing the following:
     (nreverse accum)))
 
 (defun pcmpl-args--find-prefix-options (optname argspecs)
-  (assert (stringp optname) t)
+  (cl-assert (stringp optname) t)
   (let (accum)
     (dolist (spec argspecs)
       (when (and (eq (plist-get spec :type) 'option)
@@ -1282,10 +1284,10 @@ used."
   (pcmpl-args-debug "pcmpl-args-cache-put: [%S] caching %S for %S"
                     (hash-table-count pcmpl-args-cache)
                     key (or duration pcmpl-args-cache-default-duration))
-  (assert (numberp duration) t)
+  (cl-assert (numberp duration) t)
   (when (> duration 0.0)
     (let ((time (+ duration (float-time))))
-      (assert (< 0.0 time) t)
+      (cl-assert (< 0.0 time) t)
       (puthash key (list '--pcmpl-args-cache--
                          time
                          value)
@@ -1303,7 +1305,7 @@ If the KEY's cache duration has expired, the value will be nil."
 (defun pcmpl-args--cache-get (key)
   (let ((found (gethash key pcmpl-args-cache)))
     (if (and found (not (eq (car found) '--pcmpl-args-cache--)))
-        (assert nil nil "Invalid cache entry: %S" found)
+        (cl-assert nil nil "Invalid cache entry: %S" found)
       (let ((_ (elt found 0))
             (expires (elt found 1))
             (retval  (elt found 2)))
@@ -1330,7 +1332,7 @@ If the KEY's cache duration has expired, the value will be nil."
 	     (hash-table-count pcmpl-args-cache) key))
 	  retval)
 	 (t
-	  (assert nil nil "Invalid cache expiration time stored: %S" found)))))))
+	  (cl-assert nil nil "Invalid cache expiration time stored: %S" found)))))))
 
 
 ;;; Completion utilities
@@ -1354,7 +1356,7 @@ If the KEY's cache duration has expired, the value will be nil."
 (defun pcmpl-args-completion-table-with-metadata (metadata table)
   "Return a new completion-table thats completes like TABLE,
 but returns METADATA when requested."
-  (assert (eq (car metadata) 'metadata) t)
+  (cl-assert (eq (car metadata) 'metadata) t)
   (lambda (string pred action)
     (cond
      ((eq action 'metadata) metadata)
@@ -1398,9 +1400,10 @@ and will return METADATA plus an `annotation-function'.
 
 ALIST-OR-HASH should be either an association list or a hash table
 mapping completions to their descriptions."
-  (assert (not (functionp alist-or-hash)) t)
-  (assert (or (hash-table-p alist-or-hash)
-              (and alist-or-hash (listp alist-or-hash))) t)
+  (cl-assert (not (functionp alist-or-hash)) t)
+  (cl-assert (or (hash-table-p alist-or-hash)
+                 (and alist-or-hash (listp alist-or-hash)))
+             t)
   (let ((table (make-hash-table :test 'equal))
         (maxwidth 0)
         (min-maxwidth 6)
@@ -1444,7 +1447,7 @@ mapping completions to their descriptions."
                             (or (gethash s table)
                                 (let* ((us (pcomplete-unquote-argument s))
                                        (d (gethash us table)))
-                                  (assert (> (length s) (length us)) t)
+                                  (cl-assert (> (length s) (length us)) t)
                                   (and d (substring d (- (length s) (length us)))))))))))
      table)))
 
@@ -1477,10 +1480,10 @@ like TABLE-2 called the substring following the DELIM."
                      (complete-with-action action table-2
                                            (elt parts 2) pred)))
                (if (eq (car-safe subboundaries) 'boundaries)
-                   (list* 'boundaries
-                          (+ b0 (cadr subboundaries))
-                          b1)
-                 (list* 'boundaries b0 b1))))
+                   (cl-list* 'boundaries
+                             (+ b0 (cadr subboundaries))
+                             b1)
+                 (cl-list* 'boundaries b0 b1))))
             ((eq action nil)
              (let ((result (complete-with-action action table-2
                                                  (elt parts 2) pred)))
@@ -1638,7 +1641,7 @@ ARGSPECS should be value a created with
   (noreturn
    (progn
      (pcmpl-args-debug "\n\n================================")
-     (assert (= pcomplete-last (1- (length pcomplete-args))) t)
+     (cl-assert (= pcomplete-last (1- (length pcomplete-args))) t)
      (let* ((result (pcmpl-args-parse-arguments (cdr pcomplete-args) argspecs))
             (seen (elt result 2))
             (stub (plist-get (car seen) :stub))
@@ -1647,7 +1650,7 @@ ARGSPECS should be value a created with
             (suffix (or (elt action 2) " "))
             (form (elt action 1))
             alist)
-       (assert (memq :stub (car seen)) t)
+       (cl-assert (memq :stub (car seen)) t)
        (dolist (s seen)
          (dolist (name (cons (plist-get s :name)
                              (plist-get (plist-get s :argspec) :aliases)))
@@ -1739,7 +1742,7 @@ options found in its man page."
 (defun pcmpl-args-command-subparser (args specs seen)
   "Argument subparser to handle commands that invoke other commands."
   (pcmpl-args-debug "Command subparser called with args: %S" args)
-  (assert (and args) t)
+  (cl-assert (and args) t)
   (let (xargs)
     (while args
       (push (pop args) xargs))
@@ -3505,8 +3508,8 @@ will print completions for `ls -'."
                   (short 0))
               (dolist (c opt-comps)
                 (if (string-prefix-p "--" c)
-                    (incf long)
-                  (incf short)))
+                    (cl-incf long)
+                  (cl-incf short)))
               (insert (format "%-8s\t%S\t%S\t%S\t%f\n"
                               (car cmds)
                               long short
@@ -3532,15 +3535,16 @@ will print completions for `ls -'."
                 (let ((new-long 0)
                       (new-short 0))
                   (dolist (spec new-argspecs)
-                    (assert (and (eq 'option (plist-get spec :type))
-                                 spec) t)
+                    (cl-assert (and (eq 'option (plist-get spec :type))
+                                    spec)
+                               t)
                     (if (string-prefix-p "--" (plist-get spec :name))
-                        (incf new-long)
-                      (incf new-short)))
+                        (cl-incf new-long)
+                      (cl-incf new-short)))
                   (when new-argspecs
-                    (assert (and (eq long new-long) new-argspecs) t))
+                    (cl-assert (and (eq long new-long) new-argspecs) t))
                   (when new-argspecs
-                    (assert (and (eq short new-short) new-argspecs) t))))
+                    (cl-assert (and (eq short new-short) new-argspecs) t))))
 
               (pop-to-buffer "*pcmpl-args-stats*")
               (goto-char (point-max))
@@ -3665,10 +3669,10 @@ will print completions for `ls -'."
 ;;   (save-excursion
 ;;     (goto-char (point-min))
 ;;     (while (re-search-forward "^ *(\\(defun\\|defalias\\) +'?\\(pcomplete/.+?\\) " nil t)
-;;       (assert (fboundp (intern-soft (match-string-no-properties 2))) t)
+;;       (cl-assert (fboundp (intern-soft (match-string-no-properties 2))) t)
 ;;       (push (match-string-no-properties 2) accum))
 ;;     (setq accum (nreverse accum))
-;;     (assert (= (length accum) (length (delete-dups (copy-sequence accum)))) t))
+;;     (cl-assert (= (length accum) (length (delete-dups (copy-sequence accum)))) t))
 ;;   (insert (format "\n\n;;;###autoload (dolist (func '(%s)) (autoload func \"pcmpl-args\"))\n"
 ;;                   (mapconcat 'identity accum " "))))
 

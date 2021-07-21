@@ -250,7 +250,7 @@ element.  Each element of this list is of the form:
          (when (string-match "\\`[[< ]*\\(.*?\\)[]> ]*\\'" optarg)
            (setq optarg (match-string 1 optarg)))
          (let ((opt=arg (format "%s=%s" optname optarg)))
-           (dolist (hint pcmpl-args-guess-completions-hints)
+           (cl-dolist (hint pcmpl-args-guess-completions-hints)
              (cond ((stringp (car-safe hint))
                     (when (let (case-fold-search)
                             (string-match (car hint) opt=arg))
@@ -749,7 +749,7 @@ Returns a list of cons cells of the form:
         (while lst
           (setq el (pop lst))
           (when (and lst (string= "" (cdr el)))
-            (setcdr el (dolist (p lst)
+            (setcdr el (cl-dolist (p lst)
                          (when (not (string= "" (cdr p)))
                            (cl-return (cdr p))))))))
       (when pcmpl-args-debug

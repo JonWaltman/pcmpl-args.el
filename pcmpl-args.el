@@ -201,6 +201,24 @@ If the exit status is non-zero, an error is signaled."
   (pcmpl-args-debug "!process-lines: %S %S" program args)
   (apply 'process-lines program args))
 
+(defun pcmpl-args-unbackspace-string (string)
+  "Remove ^H characters from STRING."
+  (with-temp-buffer
+    (insert string)
+    (call-process-region (point-min) (point-max) "col" t t nil "-b")
+    (string-trim (buffer-string))))
+
+(defun pcmpl-args-unbackspace-argspecs (argspecs)
+  "Remove ^H characters from ARGSPECS."
+  (mapcar
+   (lambda (option)
+     (dolist (key '(:help option) option)
+       (let ((string (plist-get option key)))
+         (when string
+           (let ((new-string (pcmpl-args-unbackspace-string string)))
+             (setq option (plist-put option key new-string)))))))
+   argspecs))
+
 
 ;;; Option extraction from help text
 
@@ -793,8 +811,7 @@ insert its content into the current buffer.")
     ;; line, reducing the number of false positives that result from lines
     ;; starting with `-' that aren't really options.
     (push "MANWIDTH=10000" process-environment)
-    (pcmpl-args-process-file
-     shell-file-name shell-command-switch (format "man %s | col -b" (shell-quote-argument name)))))
+    (pcmpl-args-process-file "man" name)))
 
 (defun pcmpl-args-extract-argspecs-from-manpage (name &rest args)
   "Return a list of argspecs by parsing the manpage identified by NAME.
@@ -804,7 +821,8 @@ ARGS are passed to `pcmpl-args-parse-help-buffer'."
     (erase-buffer)
     (funcall pcmpl-args-man-function name)
     (goto-char (point-min))
-    (apply 'pcmpl-args-extract-argspecs-from-buffer args)))
+    (pcmpl-args-unbackspace-argspecs
+     (apply 'pcmpl-args-extract-argspecs-from-buffer args))))
 
 (defun pcmpl-args-format-argspec (spec &optional short)
   "Return a string for displaying SPEC."
@@ -3158,7 +3176,8 @@ options found in its man page."
         (push "MANWIDTH=10000" process-environment)
         (pcmpl-args-process-file "git" "help" "--man" "--" cmd)
         (goto-char (point-min))
-        (pcmpl-args-extract-argspecs-from-buffer)))))
+        (pcmpl-args-unbackspace-argspecs
+         (pcmpl-args-extract-argspecs-from-buffer))))))
 
 (defun pcmpl-args-git-refs ()
   (pcmpl-args-process-lines "git" "rev-parse" "--abbrev-ref" "--all"))

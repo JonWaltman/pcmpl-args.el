@@ -6,7 +6,7 @@
 ;; URL: https://github.com/JonWaltman/pcmpl-args.el
 ;; Keywords: abbrev completion convenience processes terminals unix
 ;; Created: 25 Jul 2012
-;; Version: 0.1.1
+;; Version: 0.1.2
 ;; Compatibility: GNU Emacs: 24.x
 ;; Package-Requires: ((emacs "24.3"))
 

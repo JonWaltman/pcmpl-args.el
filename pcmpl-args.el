@@ -119,7 +119,7 @@ See `pcmpl-args-parse-help-buffer'."
 (defcustom pcmpl-args-cache-default-duration 10.0
   "Default number of seconds to cache completions.
 Does not apply to some completions that are cached for longer
-periods of time. See `pcmpl-args-cache-max-duration'."
+periods of time.  See `pcmpl-args-cache-max-duration'."
   :type 'float
   :group 'pcmpl-args)
 
@@ -149,9 +149,9 @@ nil
 ;;; Utility functions
 
 (defun pcmpl-args-debug (format &rest args)
-  "Log debugging info to `*pcmpl-args-debug*'.
-Arguments are the same as for `message'.  Logging is only
-performed if `pcmpl-args-debug' is non-nil."
+  "Log debugging info to *pcmpl-args-debug* buffer.
+FORMAT and ARGS are the same as for `message'.  Logging is only
+performed if variable `pcmpl-args-debug' is non-nil."
   (when pcmpl-args-debug
     (with-current-buffer (get-buffer-create "*pcmpl-args-debug*")
       (goto-char (point-max))
@@ -197,7 +197,8 @@ If the exit status is non-zero, an error is signaled."
     retcode))
 
 (defun pcmpl-args-process-lines (program &rest args)
-  "Same as `process-lines' but with logging using `pcmpl-args-debug'."
+  "PROGRAM and ARGS are the same as `process-lines'.
+Logging is enabled if variable `pcmpl-args-debug' is NON NIL."
   (pcmpl-args-debug "!process-lines: %S %S" program args)
   (apply 'process-lines program args))
 
@@ -611,7 +612,7 @@ Due to the variations in formatting, this function tries to
 recognize and handle many different styles.  The best handled
 style is the GNU long-option style.
 
-The following keyword arguments are recognized:
+The following KEYWORD-ARGS are recognized:
 
 :filters
     Function or a list of functions to call before parsing.
@@ -628,8 +629,7 @@ matched options will be highlighted.
 
 Returns a list of cons cells of the form:
 
-    \(OPTION . DESCRIPTION)
-"
+    \(OPTION . DESCRIPTION)"
   (when pcmpl-args-debug-parse-help
     (dolist (ov (append (car (overlay-lists))
                         (cdr (overlay-lists))))
@@ -825,7 +825,8 @@ ARGS are passed to `pcmpl-args-parse-help-buffer'."
      (apply 'pcmpl-args-extract-argspecs-from-buffer args))))
 
 (defun pcmpl-args-format-argspec (spec &optional short)
-  "Return a string for displaying SPEC."
+  "Return a string for displaying SPEC.
+If SHORT is NON NIL, return a string without :help."
   (let* ((metavars (mapcar 'car (plist-get spec :actions)))
          (type (plist-get spec :type))
          name)
@@ -1285,7 +1286,8 @@ Returns a list containing the following:
 
 (defun pcmpl-args-cache-flush (&optional all)
   "Check and delete expired elements in cache.
-When called interactively, all elements are deleted."
+When called interactively or ALL is NON NIL, all elements are
+deleted."
   (interactive "p")
   (if all
       (setq pcmpl-args-cache
@@ -1375,8 +1377,8 @@ If the KEY's cache duration has expired, the value will be nil."
        (funcall sym)))))
 
 (defun pcmpl-args-completion-table-with-metadata (metadata table)
-  "Return a new completion-table thats completes like TABLE,
-but returns METADATA when requested."
+  "Return a new completion-table.
+It completes like TABLE, but returns METADATA when requested."
   (cl-assert (eq (car metadata) 'metadata) t)
   (lambda (string pred action)
     (cond
@@ -1416,8 +1418,9 @@ but returns METADATA when requested."
 
 (defun pcmpl-args-completion-table-with-annotations (alist-or-hash
 						     &optional metadata)
-  "Create a completion-table that completes like ALIST-OR-HASH
-and will return METADATA plus an `annotation-function'.
+  "Create a new completion-table.
+It completes like ALIST-OR-HASH and will return METADATA plus an
+`annotation-function'.
 
 ALIST-OR-HASH should be either an association list or a hash table
 mapping completions to their descriptions."
@@ -1473,9 +1476,10 @@ mapping completions to their descriptions."
      table)))
 
 (defun pcmpl-args-pare-completion-table (new-table old-table)
-  "Return a new completion-table that completes like NEW-TABLE,
-but whose output from `all-completions' will be trimmed of any elements
-contained in OLD-TABLE."
+  "Return a new completion-table.
+It completes like NEW-TABLE, but its output from
+`all-completions' will be trimmed of any elements contained in
+OLD-TABLE."
   (lambda (string pred action)
     (cond ((eq action t)
            (let ((old-comps (all-completions string old-table pred))
@@ -1485,9 +1489,10 @@ contained in OLD-TABLE."
            (complete-with-action action new-table string pred)))))
 
 (defun pcmpl-args-join-completion-tables (delim table-1 table-2)
-  "Return a new completion-table that will complete like TABLE-1
-unless it completes a string containing DELIM when it will complete
-like TABLE-2 called the substring following the DELIM."
+  "Return a new completion-table.
+It will complete like TABLE-1 unless it completes a string
+containing DELIM when it will complete like TABLE-2 called the
+substring following the DELIM."
   (lambda (string pred action)
     (let ((parts (and string
                       (pcmpl-args-partition-string delim string))))
@@ -1516,7 +1521,8 @@ like TABLE-2 called the substring following the DELIM."
              (complete-with-action action table-2 (elt parts 2) pred))))))
 
 (defun pcmpl-args-completion-table-dynamic (fun)
-  "Like `completion-table-dynamic' but doesn't ignore metadata."
+  "FUN is like in `completion-table-dynamic'.
+It doesn't ignore metadata."
   (lambda (string pred action)
     (complete-with-action action (funcall fun string) string pred)))
 
@@ -1544,7 +1550,7 @@ of the previous parts."
          s2 pred)))))
 
 (defun pcmpl-args-symbolic-permissions-completion-table (string pred action)
-  "Complete symbolic-permission strings, like those used by `chmod'."
+  "Complete symbolic-permission STRING, like those used by `chmod'."
   ;; [ugoa]*([-+=]([rwxXst]*|[ugo]))+
   (let ((pare-string string)
         tbl)
@@ -1589,7 +1595,7 @@ of the previous parts."
                     process-environment)))
 
 (defun pcmpl-args-printf-sequence-completions (sequences)
-  "Return a completion-table that completes printf style %-SEQUENCES."
+  "Return a completion-table that completes printf style SEQUENCES."
   (lambda (string pred action)
     (complete-with-action
      action (apply-partially
@@ -1605,7 +1611,7 @@ of the previous parts."
      "" pred)))
 
 (defun pcmpl-args-size-suffix-completions (&optional suffixes)
-  "Return a completion-table that completes size suffixes."
+  "Return a completion-table that completes size SUFFIXES."
   (setq suffixes (or suffixes
                      '(("c" "1")
                        ("w" "2")

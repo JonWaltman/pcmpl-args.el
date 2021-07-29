@@ -500,7 +500,7 @@ The value returned can be passed to `pcmpl-args-pcomplete'."
         (setq opt-str (substring opt-str 0 (match-beginning 0))))
       ;; Split into multiple options.
       (setq opt-str (replace-regexp-in-string
-                     "\\([ ]*[, ]+\\)-" "\x0" opt-str nil nil 1))
+                     "\\([, ]+\\)-" "\x0" opt-str nil nil 1))
       (dolist (s (split-string opt-str "\x0" t))
         (push s option-strings)))
     (setq option-strings (nreverse option-strings))

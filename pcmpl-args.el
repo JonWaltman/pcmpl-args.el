@@ -204,10 +204,7 @@ Logging is enabled if variable `pcmpl-args-debug' is NON NIL."
 
 (defun pcmpl-args-unbackspace-string (string)
   "Remove ^H characters from STRING."
-  (with-temp-buffer
-    (insert string)
-    (call-process-region (point-min) (point-max) "col" t t nil "-b")
-    (string-trim (buffer-string))))
+  (replace-regexp-in-string ".\b" "" string))
 
 (defun pcmpl-args-unbackspace-argspecs (argspecs)
   "Remove ^H characters from ARGSPECS."

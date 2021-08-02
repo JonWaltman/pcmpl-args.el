@@ -8,7 +8,7 @@
 ;; Created: 25 Jul 2012
 ;; Version: 0.1.2
 ;; Compatibility: GNU Emacs: 24.x
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "25.1"))
 
 ;; This file is not part of GNU Emacs.
 ;;
@@ -98,7 +98,7 @@
 (require 'pcmpl-unix)
 (require 'pcmpl-linux)
 (require 'pcmpl-gnu)
-(require 'cl-seq)
+(require 'subr-x)
 
 (defgroup pcmpl-args nil
   "Refined argument completion for use with pcomplete."

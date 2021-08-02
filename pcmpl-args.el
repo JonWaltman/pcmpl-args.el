@@ -140,8 +140,8 @@ nil
 `short'
     Limited descriptions (if available)."
   :type '(choice (const nil)
-		 (const long)
-		 (const short))
+                 (const long)
+                 (const short))
   :group 'pcmpl-args)
 
 
@@ -472,8 +472,8 @@ The value returned can be passed to `pcmpl-args-pcomplete'."
       (setq rv (nreverse rv))
       (when pcmpl-args-debug
         (pcmpl-args-debug "= argspecs =")
-	(dolist (spec rv)
-	  (pcmpl-args-debug "%S" spec))
+        (dolist (spec rv)
+          (pcmpl-args-debug "%S" spec))
         (pcmpl-args-debug "\n%s\n" (pcmpl-args-format-argspecs rv)))
       rv)))
 
@@ -587,8 +587,8 @@ The value returned can be passed to `pcmpl-args-pcomplete'."
                    (setq delim (if long-p "=" "")
                          suffix (if long-p nil nil)))
                   (`inline
-                   (setq delim (if long-p "=" "")
-                         suffix (if long-p "=" "")))
+                    (setq delim (if long-p "=" "")
+                          suffix (if long-p "=" "")))
                   (x (error "Invalid option style: %S" x)))
                 (setq spec (plist-put spec :actions (plist-get spec-with-actions :actions))
                       spec (plist-put spec :style (plist-get spec-with-actions :style))
@@ -861,8 +861,8 @@ If SHORT is NON NIL, return a string without :help."
         (setq name (concat name (propertize (upcase s) 'face font-lock-type-face)))))
     (when (not short)
       (setq name (format "%-22s  %s" name
-			 (propertize (or (plist-get spec :help) "")
-				     'face font-lock-doc-face))))
+                         (propertize (or (plist-get spec :help) "")
+                                     'face font-lock-doc-face))))
     name))
 
 (defun pcmpl-args-format-argspecs (specs)
@@ -947,7 +947,7 @@ Returns a list containing the following:
         (cl-assert (and action (listp action)) t)
         (cl-assert (stringp (car action)) t)
         (cl-assert (and action (or (= 3 (length action))
-                                (= 2 (length action)))))))
+                                   (= 2 (length action)))))))
     (dolist (state seen)
       (cl-assert (and state (listp state)) t)
       (let ((tmp state))
@@ -962,8 +962,8 @@ Returns a list containing the following:
       (when (plist-get state :action)
         (cl-assert (stringp (car (plist-get state :action))) t)
         (cl-assert (and (plist-get state :action)
-                     (or (= 3 (length (plist-get state :action)))
-                         (= 2 (length (plist-get state :action)))) t)))))
+                        (or (= 3 (length (plist-get state :action)))
+                            (= 2 (length (plist-get state :action)))) t)))))
   (list arguments argspecs seen))
 
 (defun pcmpl-args-filter-argspecs (spec argspecs)
@@ -1202,15 +1202,15 @@ Returns a list containing the following:
 
 (defun pcmpl-args--make-action-for-options (stub spec argspecs)
   (let* ((ambigous (pcmpl-args--find-ambiguous-options
-		    stub (cons spec argspecs)))
-	 (suffix (or (and spec (plist-get spec :suffix))
-		     (plist-get (car ambigous) :suffix)
-		     " "))
-	 (tbl (make-hash-table :test 'equal)))
+                    stub (cons spec argspecs)))
+         (suffix (or (and spec (plist-get spec :suffix))
+                     (plist-get (car ambigous) :suffix)
+                     " "))
+         (tbl (make-hash-table :test 'equal)))
     (if (or (null spec)
-	    (plist-get spec :actions)
-	    (not (string-match "\\`-[a-zA-Z0-9]\\'" (plist-get spec :name)))
-	    (> (length ambigous) 1))
+            (plist-get spec :actions)
+            (not (string-match "\\`-[a-zA-Z0-9]\\'" (plist-get spec :name)))
+            (> (length ambigous) 1))
         (progn
           (dolist (spec (cons spec argspecs))
             (when (eq (plist-get spec :type) 'option)
@@ -1222,21 +1222,21 @@ Returns a list containing the following:
                            spec (equal pcmpl-args-annotation-style 'short))
                           (length (plist-get spec :name))))
                        tbl)))
-	  (setq argspecs nil
-		ambigous nil
-		spec nil
-		stub nil)
-	  (list "OPTION"
-		(lambda (s p a)
-		  (cond ((eq a 'metadata)
-			 `(metadata
-			   (category . option)
-			   (annotation-function
-			    . ,(pcmpl-args-make-completion-annotator
+          (setq argspecs nil
+                ambigous nil
+                spec nil
+                stub nil)
+          (list "OPTION"
+                (lambda (s p a)
+                  (cond ((eq a 'metadata)
+                         `(metadata
+                           (category . option)
+                           (annotation-function
+                            . ,(pcmpl-args-make-completion-annotator
                                 tbl))))
-			(t
-			 (complete-with-action a tbl s p))))
-		suffix))
+                        (t
+                         (complete-with-action a tbl s p))))
+                suffix))
 
       (dolist (spec argspecs)
         (when (and (eq (plist-get spec :type) 'option)
@@ -1250,22 +1250,22 @@ Returns a list containing the following:
                       (length (plist-get spec :name))))
                    tbl)))
       (setq argspecs nil
-	    ambigous nil
-	    spec nil
-	    stub nil)
+            ambigous nil
+            spec nil
+            stub nil)
       (list "SHORT-OPTION"
-	    (list :lambda (lambda (_alist)
-			    (setq pcomplete-stub "")
-			    (lambda (s p a)
-			      (cond ((eq a 'metadata)
-				     `(metadata
-				       (category . option)
-				       (annotation-function
-					. ,(pcmpl-args-make-completion-annotator
+            (list :lambda (lambda (_alist)
+                            (setq pcomplete-stub "")
+                            (lambda (s p a)
+                              (cond ((eq a 'metadata)
+                                     `(metadata
+                                       (category . option)
+                                       (annotation-function
+                                        . ,(pcmpl-args-make-completion-annotator
                                             tbl))))
-				    (t
-				     (complete-with-action
-				      a tbl s p))))))))))
+                                    (t
+                                     (complete-with-action
+                                      a tbl s p))))))))))
 
 
 ;;; Caching support
@@ -1330,29 +1330,29 @@ If the KEY's cache duration has expired, the value will be nil."
             (expires (elt found 1))
             (retval  (elt found 2)))
         (cond
-	 ((null found)
-	  (pcmpl-args-debug
-	   (propertize "pcmpl-args-cache-get: [%S] %S [missing]"
-		       'face 'warning)
-	   (hash-table-count pcmpl-args-cache) key)
-	  nil)
-	 ((numberp expires)
-	  (if (>= (- (float-time) expires) 0)
-	      (progn
-		(pcmpl-args-debug
-		 (propertize "pcmpl-args-cache-get: [%S] %S [cache expired]"
-			     'face 'warning)
-		 (hash-table-count pcmpl-args-cache) key)
-		;; (puthash key nil pcmpl-args-cache)
-		(remhash key pcmpl-args-cache)
-		(setq retval nil))
-	    (pcmpl-args-debug
-	     (propertize "pcmpl-args-cache-get: [%S] %S [cached]"
-			 'face 'success)
-	     (hash-table-count pcmpl-args-cache) key))
-	  retval)
-	 (t
-	  (cl-assert nil nil "Invalid cache expiration time stored: %S" found)))))))
+         ((null found)
+          (pcmpl-args-debug
+           (propertize "pcmpl-args-cache-get: [%S] %S [missing]"
+                       'face 'warning)
+           (hash-table-count pcmpl-args-cache) key)
+          nil)
+         ((numberp expires)
+          (if (>= (- (float-time) expires) 0)
+              (progn
+                (pcmpl-args-debug
+                 (propertize "pcmpl-args-cache-get: [%S] %S [cache expired]"
+                             'face 'warning)
+                 (hash-table-count pcmpl-args-cache) key)
+                ;; (puthash key nil pcmpl-args-cache)
+                (remhash key pcmpl-args-cache)
+                (setq retval nil))
+            (pcmpl-args-debug
+             (propertize "pcmpl-args-cache-get: [%S] %S [cached]"
+                         'face 'success)
+             (hash-table-count pcmpl-args-cache) key))
+          retval)
+         (t
+          (cl-assert nil nil "Invalid cache expiration time stored: %S" found)))))))
 
 
 ;;; Completion utilities
@@ -1414,7 +1414,7 @@ It completes like TABLE, but returns METADATA when requested."
              retval (- width (length string)))))))))
 
 (defun pcmpl-args-completion-table-with-annotations (alist-or-hash
-						     &optional metadata)
+                                                     &optional metadata)
   "Create a new completion-table.
 It completes like ALIST-OR-HASH and will return METADATA plus an
 `annotation-function'.
@@ -1737,10 +1737,10 @@ recognizes the `--help' option)."
   (let ((shell-command (concat (car pcomplete-args) " --help")))
     (pcmpl-args-pcomplete
      (pcmpl-args-cached shell-command t
-       (pcmpl-args-make-argspecs
-        (append
-         (pcmpl-args-extract-argspecs-from-shell-command shell-command)
-         `((argument * (("FILE" t))))))))))
+                        (pcmpl-args-make-argspecs
+                         (append
+                          (pcmpl-args-extract-argspecs-from-shell-command shell-command)
+                          `((argument * (("FILE" t))))))))))
 
 (defun pcmpl-args-pcomplete-on-man ()
   "Perform pcomplete completion based on the current command's man page.
@@ -1757,10 +1757,10 @@ will create a completion handler for `my-command' using the
 options found in its man page."
   (pcmpl-args-pcomplete
    (pcmpl-args-cached (car pcomplete-args) t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage (car pcomplete-args))
-       `((argument * (("FILE" t)))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage (car pcomplete-args))
+                        `((argument * (("FILE" t)))))))))
 
 
 (defun pcmpl-args-command-subparser (args specs seen)
@@ -1885,14 +1885,14 @@ options found in its man page."
 (defun pcomplete/date ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'date t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage "date")
-       `((argument * (("FORMAT"
-		       (:eval
-			(pcmpl-args-printf-sequence-completions
-			 pcmpl-args-date-format-sequences))))
-		   :excludes (-))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage "date")
+                        `((argument * (("FORMAT"
+                                        (:eval
+                                         (pcmpl-args-printf-sequence-completions
+                                          pcmpl-args-date-format-sequences))))
+                                    :excludes (-))))))))
 
 (defun pcomplete/dd ()
   (while t
@@ -1995,34 +1995,34 @@ options found in its man page."
 (defun pcomplete/ls ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'ls t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage "ls")
-       `((argument * (("FILE" t)))))
-      :hints
-      '(("\\`--colou?r=" ("yes" "no" "always" "never" "auto"))
-	("\\`--format=" ("across" "commas" "horizontal" "long"
-			 "single-column" "verbose" "vertical"))
-	("\\`--indicator-style=" ("none" "slash" "file-type" "classify"))
-	("\\`--quoting-style=" ("literal" "locale" "shell"
-				"shell-always" "c" "escape"))
-	("\\`--sort=" ("none" "extension" "size" "time" "version"))
-	("\\`--time=" ("atime" "access" "use" "ctime" "status"))
-	("\\`--time-style=" ("full-iso" "long-iso" "iso" "locale"
-			     "posix-full-iso" "posix-long-iso"
-			     "posix-iso" "posix-locale"))
-	("=\\(COLS\\|cols\\)\\'" none))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage "ls")
+                        `((argument * (("FILE" t)))))
+                       :hints
+                       '(("\\`--colou?r=" ("yes" "no" "always" "never" "auto"))
+                         ("\\`--format=" ("across" "commas" "horizontal" "long"
+                                          "single-column" "verbose" "vertical"))
+                         ("\\`--indicator-style=" ("none" "slash" "file-type" "classify"))
+                         ("\\`--quoting-style=" ("literal" "locale" "shell"
+                                                 "shell-always" "c" "escape"))
+                         ("\\`--sort=" ("none" "extension" "size" "time" "version"))
+                         ("\\`--time=" ("atime" "access" "use" "ctime" "status"))
+                         ("\\`--time-style=" ("full-iso" "long-iso" "iso" "locale"
+                                              "posix-full-iso" "posix-long-iso"
+                                              "posix-iso" "posix-locale"))
+                         ("=\\(COLS\\|cols\\)\\'" none))))))
 
 (defun pcomplete/mv ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'mv t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage "mv")
-       `((argument * (("FILE" t)))))
-      :hints
-      `(("\\`--backup=" ("none" "off" "numbered" "t"
-			 "existing" "nil" "simple" "never")))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage "mv")
+                        `((argument * (("FILE" t)))))
+                       :hints
+                       `(("\\`--backup=" ("none" "off" "numbered" "t"
+                                          "existing" "nil" "simple" "never")))))))
 
 (defun pcomplete/nice ()
   (pcmpl-args-pcomplete
@@ -2283,59 +2283,59 @@ options found in its man page."
 
 (defun pcmpl-args--man-get-data ()
   (pcmpl-args-cached 'man-data 60
-    (let (table)
-      (dolist (l (let ((process-environment process-environment))
-                   (push "MANWIDTH=1000" process-environment)
-                   (pcmpl-args-process-lines "man" "-k" ".")))
-        (or (string-match
-             "\\`\\([^ ]+\\)\\(.*\\)\\'" l)
-            (error "Bad apropos"))
-        (let* ((page (match-string 1 l))
-               (desc (match-string 2 l)))
-          (push (cons page (if (equal pcmpl-args-annotation-style 'long)
-                               desc
-                             (when (string-match "\\`\\([ ]+(.*?)\\)" desc)
-                               (match-string 1 desc))))
-                table)))
-      (dolist (section
-               '(("1" "Executable programs or shell commands")
-                 ("2" "System calls (functions provided by the kernel)")
-                 ("3" "Library calls (functions within program libraries)")
-                 ("4" "Special files (usually found in /dev)")
-                 ("5" "File formats and conventions eg /etc/passwd")
-                 ("6" "Games")
-                 ("7" "Miscellaneous")
-                 ("8" "System administration commands (usually only for root)")
-                 ("9" "Kernel routines [Non standard]")))
-        (push (cons (car section)
-                    (when (equal pcmpl-args-annotation-style 'long)
-                      (concat "                    - " (cadr section))))
-              table))
-      table)))
+                     (let (table)
+                       (dolist (l (let ((process-environment process-environment))
+                                    (push "MANWIDTH=1000" process-environment)
+                                    (pcmpl-args-process-lines "man" "-k" ".")))
+                         (or (string-match
+                              "\\`\\([^ ]+\\)\\(.*\\)\\'" l)
+                             (error "Bad apropos"))
+                         (let* ((page (match-string 1 l))
+                                (desc (match-string 2 l)))
+                           (push (cons page (if (equal pcmpl-args-annotation-style 'long)
+                                                desc
+                                              (when (string-match "\\`\\([ ]+(.*?)\\)" desc)
+                                                (match-string 1 desc))))
+                                 table)))
+                       (dolist (section
+                                '(("1" "Executable programs or shell commands")
+                                  ("2" "System calls (functions provided by the kernel)")
+                                  ("3" "Library calls (functions within program libraries)")
+                                  ("4" "Special files (usually found in /dev)")
+                                  ("5" "File formats and conventions eg /etc/passwd")
+                                  ("6" "Games")
+                                  ("7" "Miscellaneous")
+                                  ("8" "System administration commands (usually only for root)")
+                                  ("9" "Kernel routines [Non standard]")))
+                         (push (cons (car section)
+                                     (when (equal pcmpl-args-annotation-style 'long)
+                                       (concat "                    - " (cadr section))))
+                               table))
+                       table)))
 
 (defun pcomplete/man ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'man t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage "man")
-       `((argument
-          * (("MAN-PAGE-OR-SECTION" pcmpl-args-man-completion-table)
-             ("MAN-PAGE"
-              (:lambda
-               ,(lambda (alist)
-        	  (let ((section (car (last (cadr (assoc '* alist)) 2))))
-                    (if (not (string-match "\\`[0-9]" section))
-                        'pcmpl-args-man-completion-table
-                      (apply-partially
-                       'completion-table-with-predicate
-                       'pcmpl-args-man-completion-table
-                       (lambda (c)
-                         (string-match (concat "(" (regexp-quote section) ")")
-                                       (or (get-text-property (1- (length c)) 'help-echo c)
-                                           "(7) xxxxxxxxxxxxx")))
-                       t)))))))
-          :excludes (-))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage "man")
+                        `((argument
+                           * (("MAN-PAGE-OR-SECTION" pcmpl-args-man-completion-table)
+                              ("MAN-PAGE"
+                               (:lambda
+                                ,(lambda (alist)
+                                   (let ((section (car (last (cadr (assoc '* alist)) 2))))
+                                     (if (not (string-match "\\`[0-9]" section))
+                                         'pcmpl-args-man-completion-table
+                                       (apply-partially
+                                        'completion-table-with-predicate
+                                        'pcmpl-args-man-completion-table
+                                        (lambda (c)
+                                          (string-match (concat "(" (regexp-quote section) ")")
+                                                        (or (get-text-property (1- (length c)) 'help-echo c)
+                                                            "(7) xxxxxxxxxxxxx")))
+                                        t)))))))
+                           :excludes (-))))))))
 
 
 ;; Info node completion
@@ -2347,30 +2347,30 @@ options found in its man page."
   "Create a unique alist from all index entries."
   (require 'info)
   (pcmpl-args-cached 'info-node-completions t
-    (info-initialize)
-    (let ((tbl (make-hash-table :test 'equal)))
-      (with-temp-buffer
-	(with-temp-message ""
-          (Info-insert-dir))
-	(goto-char (point-min))
-	(while (re-search-forward
-		(concat "^\\* \\(.*?\\): \\((.*?)\\(.*?\\)[.]\\)[ \t]*"
-			"\\(\n[^*\n][ \t]*\\(?9:.*\\)\\|\\(?9:.*\\)\\)")
-		nil t)
-	  (puthash (match-string 1)
-		   (match-string 9)
-		   tbl)))
-      (pcmpl-args-completion-table-with-annotations
-       tbl `(metadata (category . info-node))))))
+                     (info-initialize)
+                     (let ((tbl (make-hash-table :test 'equal)))
+                       (with-temp-buffer
+                         (with-temp-message ""
+                           (Info-insert-dir))
+                         (goto-char (point-min))
+                         (while (re-search-forward
+                                 (concat "^\\* \\(.*?\\): \\((.*?)\\(.*?\\)[.]\\)[ \t]*"
+                                         "\\(\n[^*\n][ \t]*\\(?9:.*\\)\\|\\(?9:.*\\)\\)")
+                                 nil t)
+                           (puthash (match-string 1)
+                                    (match-string 9)
+                                    tbl)))
+                       (pcmpl-args-completion-table-with-annotations
+                        tbl `(metadata (category . info-node))))))
 
 (defun pcomplete/info ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'info t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage "info")
-       `((argument
-	  * (("NODE" (:eval (pcmpl-args-info-node-completions)))))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage "info")
+                        `((argument
+                           * (("NODE" (:eval (pcmpl-args-info-node-completions)))))))))))
 
 
 ;; find completion
@@ -2755,32 +2755,32 @@ options found in its man page."
 
 (defun pcmpl-args-perl-modules ()
   (pcmpl-args-cached 'perl-modules 60.0
-    ;; Copied from `perldoc.el'.
-    (with-temp-buffer
-      (let ((case-fold-search nil)
-	    (perldoc-inc nil)
-	    (modules nil))
-	(let ((default-directory "/"))
-	  (shell-command "perl -e 'print \"@INC\"'" t))
-	(goto-char (point-min))
-	(while (re-search-forward "\\(/[^ ]*\\)" nil t)
-	  (let ((libdir (match-string 1)))
-	    (when (not (member libdir perldoc-inc))
-	      (push libdir perldoc-inc))))
-	(dolist (dir perldoc-inc)
-	  (when (file-readable-p dir)
-	    (erase-buffer)
-	    (let ((default-directory "/"))
-	      (shell-command (concat "find -L " (shell-quote-argument dir)
-				     " -name '[A-Z]*.pm' -o -name '*.pod'") t))
-	    (goto-char (point-min))
-	    (while (re-search-forward
-		    (concat "^" (regexp-quote dir) "/\\(.*\\).\\(pm\\|pod\\)$") nil t)
-	      (push (replace-regexp-in-string
-		     "/" "::"
-		     (replace-regexp-in-string "^pod/" "" (match-string 1)))
-		    modules))))
-	(delete-dups modules)))))
+                     ;; Copied from `perldoc.el'.
+                     (with-temp-buffer
+                       (let ((case-fold-search nil)
+                             (perldoc-inc nil)
+                             (modules nil))
+                         (let ((default-directory "/"))
+                           (shell-command "perl -e 'print \"@INC\"'" t))
+                         (goto-char (point-min))
+                         (while (re-search-forward "\\(/[^ ]*\\)" nil t)
+                           (let ((libdir (match-string 1)))
+                             (when (not (member libdir perldoc-inc))
+                               (push libdir perldoc-inc))))
+                         (dolist (dir perldoc-inc)
+                           (when (file-readable-p dir)
+                             (erase-buffer)
+                             (let ((default-directory "/"))
+                               (shell-command (concat "find -L " (shell-quote-argument dir)
+                                                      " -name '[A-Z]*.pm' -o -name '*.pod'") t))
+                             (goto-char (point-min))
+                             (while (re-search-forward
+                                     (concat "^" (regexp-quote dir) "/\\(.*\\).\\(pm\\|pod\\)$") nil t)
+                               (push (replace-regexp-in-string
+                                      "/" "::"
+                                      (replace-regexp-in-string "^pod/" "" (match-string 1)))
+                                     modules))))
+                         (delete-dups modules)))))
 
 (defun pcmpl-args-perl-debugging-modules ()
   (delq nil (mapcar (lambda (mod)
@@ -2896,36 +2896,36 @@ options found in its man page."
 
 (defun pcmpl-args-bzr-commands (&optional topics)
   (pcmpl-args-cached (cons 'bzr-command topics) t
-    (let ((tbl (make-hash-table :test 'equal)))
-      (dolist (l (nconc (pcmpl-args-process-lines "bzr" "help" "commands")
-			(and topics
-			     (pcmpl-args-process-lines "bzr" "help" "topics"))))
-	(when (string-match "^\\([^ \t]+?\\)[ \t]+\\(.*\\)$" l)
-	  (puthash (match-string 1 l)
-		   (match-string 2 l) tbl)))
-      ;; (dolist (cmd-and-aliases
-      ;;          '(("update" "up")
-      ;;            ("status" "st" "stat")
-      ;;            ("serve" "server")
-      ;;            ("resolve" "resolved")
-      ;;            ("remove-branch" "rmbranch")
-      ;;            ("remove" "rm" "del")
-      ;;            ("mv" "move" "rename")
-      ;;            ("lp-propose-merge" "lp-submit" "lp-propose")
-      ;;            ("launchpad-open" "lp-open")
-      ;;            ("launchpad-mirror" "lp-mirror")
-      ;;            ("launchpad-login" "lp-login")
-      ;;            ("init-repository" "init-repo")
-      ;;            ("help" "?" "--help" "-?" "-h")
-      ;;            ("diff" "di" "dif")
-      ;;            ("commit" "ci" "checkin")
-      ;;            ("checkout" "co")
-      ;;            ("branch" "get" "clone")
-      ;;            ("annotate" "ann" "blame" "praise")))
-      ;;   (dolist (alias (cdr cmd-and-aliases))
-      ;;     (puthash alias (gethash (car cmd-and-aliases) tbl) tbl)))
-      (pcmpl-args-completion-table-with-annotations
-       tbl `(metadata (category . bzr-command))))))
+                     (let ((tbl (make-hash-table :test 'equal)))
+                       (dolist (l (nconc (pcmpl-args-process-lines "bzr" "help" "commands")
+                                         (and topics
+                                              (pcmpl-args-process-lines "bzr" "help" "topics"))))
+                         (when (string-match "^\\([^ \t]+?\\)[ \t]+\\(.*\\)$" l)
+                           (puthash (match-string 1 l)
+                                    (match-string 2 l) tbl)))
+                       ;; (dolist (cmd-and-aliases
+                       ;;          '(("update" "up")
+                       ;;            ("status" "st" "stat")
+                       ;;            ("serve" "server")
+                       ;;            ("resolve" "resolved")
+                       ;;            ("remove-branch" "rmbranch")
+                       ;;            ("remove" "rm" "del")
+                       ;;            ("mv" "move" "rename")
+                       ;;            ("lp-propose-merge" "lp-submit" "lp-propose")
+                       ;;            ("launchpad-open" "lp-open")
+                       ;;            ("launchpad-mirror" "lp-mirror")
+                       ;;            ("launchpad-login" "lp-login")
+                       ;;            ("init-repository" "init-repo")
+                       ;;            ("help" "?" "--help" "-?" "-h")
+                       ;;            ("diff" "di" "dif")
+                       ;;            ("commit" "ci" "checkin")
+                       ;;            ("checkout" "co")
+                       ;;            ("branch" "get" "clone")
+                       ;;            ("annotate" "ann" "blame" "praise")))
+                       ;;   (dolist (alias (cdr cmd-and-aliases))
+                       ;;     (puthash alias (gethash (car cmd-and-aliases) tbl) tbl)))
+                       (pcmpl-args-completion-table-with-annotations
+                        tbl `(metadata (category . bzr-command))))))
 
 (defun pcomplete/bzr ()
   (pcmpl-args-pcomplete
@@ -2934,15 +2934,15 @@ options found in its man page."
        0 (("BZR-COMMAND" nil))
        :subparser
        (lambda (arguments argspecs seen)
-	 (let ((stub (pop arguments)))
-	   (push (list :name 0
-		       :stub stub
-		       :action `("BZR-CMD"
-				 (:eval (pcmpl-args-bzr-commands))))
-		 seen)
-	   (if (null arguments)
-	       (list arguments argspecs seen)
-	     (setq argspecs
+         (let ((stub (pop arguments)))
+           (push (list :name 0
+                       :stub stub
+                       :action `("BZR-CMD"
+                                 (:eval (pcmpl-args-bzr-commands))))
+                 seen)
+           (if (null arguments)
+               (list arguments argspecs seen)
+             (setq argspecs
                    (when (string-match "\\`[-_[:alnum:]]+\\'" stub)
                      (ignore-errors
                        (pcmpl-args-extract-argspecs-from-shell-command
@@ -2950,12 +2950,12 @@ options found in its man page."
              (setq argspecs
                    (append
                     argspecs
-		    (cond ((equal stub "help")
-			   `((argument
-			      * (("BZR-COMMAND"
-				  (:eval (pcmpl-args-bzr-commands t)))))))
-			  (t
-			   `((argument * (("FILE" t))))))))
+                    (cond ((equal stub "help")
+                           `((argument
+                              * (("BZR-COMMAND"
+                                  (:eval (pcmpl-args-bzr-commands t)))))))
+                          (t
+                           `((argument * (("FILE" t))))))))
              (list arguments (pcmpl-args-make-argspecs argspecs) seen)))))))))
 
 
@@ -2963,56 +2963,56 @@ options found in its man page."
 
 (defun pcmpl-args-hg-commands (&optional help-topics)
   (pcmpl-args-cached (cons 'hg-command help-topics) t
-    (let ((tbl (make-hash-table :test 'equal)))
-      (with-temp-buffer
-	(pcmpl-args-process-file "hg" "help")
-	(goto-char (point-min))
-	(when (re-search-forward "commands.*" nil t)
-	  (skip-chars-forward " \t\n")
-	  (while (re-search-forward "^ +\\([_a-zA-Z]+\\)  +\\(.*\\)$"
-				    (save-excursion
-				      (re-search-forward "^[ ]*$" nil t)) t)
-	    (puthash (match-string 1)
-		     (match-string 2) tbl))
-	  (when help-topics
-	    (while (re-search-forward "^ +\\([_a-zA-Z]+\\)  +\\(.*\\)$"
-				      nil t)
-	      (puthash (match-string 1)
-		       (match-string 2) tbl)))))
-      (pcmpl-args-completion-table-with-annotations
-       tbl `(metadata (category . hg-command))))))
+                     (let ((tbl (make-hash-table :test 'equal)))
+                       (with-temp-buffer
+                         (pcmpl-args-process-file "hg" "help")
+                         (goto-char (point-min))
+                         (when (re-search-forward "commands.*" nil t)
+                           (skip-chars-forward " \t\n")
+                           (while (re-search-forward "^ +\\([_a-zA-Z]+\\)  +\\(.*\\)$"
+                                                     (save-excursion
+                                                       (re-search-forward "^[ ]*$" nil t)) t)
+                             (puthash (match-string 1)
+                                      (match-string 2) tbl))
+                           (when help-topics
+                             (while (re-search-forward "^ +\\([_a-zA-Z]+\\)  +\\(.*\\)$"
+                                                       nil t)
+                               (puthash (match-string 1)
+                                        (match-string 2) tbl)))))
+                       (pcmpl-args-completion-table-with-annotations
+                        tbl `(metadata (category . hg-command))))))
 
 (defun pcomplete/hg ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'hg t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-shell-command "hg -v help")
-       `((argument
-	  0 (("HG-COMMAND" nil))
-	  :subparser
-	  (lambda (arguments argspecs seen)
-	    (let ((stub (pop arguments)))
-	      (push (list :name 0
-			  :stub stub
-			  :values (plist-get (car seen) :values)
-			  :action `("HG-CMD" (:eval (pcmpl-args-hg-commands))))
-		    seen)
-              (if (null arguments)
-                  (list arguments argspecs seen)
-                (setq argspecs
-                      (when (string-match "\\`[-_[:alnum:]]+\\'" stub)
-                        (ignore-errors
-                          (pcmpl-args-extract-argspecs-from-shell-command
-                           (concat "hg help " (shell-quote-argument stub))))))
-                (setq argspecs
-                      (append
-                       argspecs
-                       (cond ((equal stub "help")
-                              `((argument * (("HG-COMMAND"
-                                              (:eval (pcmpl-args-hg-commands t)))))))
-                             (t `((argument * (("FILE" t))))))))
-                (list arguments (pcmpl-args-make-argspecs argspecs) seen)))))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-shell-command "hg -v help")
+                        `((argument
+                           0 (("HG-COMMAND" nil))
+                           :subparser
+                           (lambda (arguments argspecs seen)
+                             (let ((stub (pop arguments)))
+                               (push (list :name 0
+                                           :stub stub
+                                           :values (plist-get (car seen) :values)
+                                           :action `("HG-CMD" (:eval (pcmpl-args-hg-commands))))
+                                     seen)
+                               (if (null arguments)
+                                   (list arguments argspecs seen)
+                                 (setq argspecs
+                                       (when (string-match "\\`[-_[:alnum:]]+\\'" stub)
+                                         (ignore-errors
+                                           (pcmpl-args-extract-argspecs-from-shell-command
+                                            (concat "hg help " (shell-quote-argument stub))))))
+                                 (setq argspecs
+                                       (append
+                                        argspecs
+                                        (cond ((equal stub "help")
+                                               `((argument * (("HG-COMMAND"
+                                                               (:eval (pcmpl-args-hg-commands t)))))))
+                                              (t `((argument * (("FILE" t))))))))
+                                 (list arguments (pcmpl-args-make-argspecs argspecs) seen)))))))))))
 
 
 ;; Git completion
@@ -3152,35 +3152,35 @@ options found in its man page."
 
 (defun pcmpl-args-git-commands ()
   (pcmpl-args-cached 'git-commands t
-    (with-temp-buffer
-      (pcmpl-args-process-file "git" "help" "-a")
-      (goto-char (point-min))
-      (let ((cmds (copy-sequence pcmpl-args-git-commands)))
-        (while (re-search-forward
-                "^[\t\s]+\\([^[:space:]]+\\)[\t\s]*\\([^[:space:]]*\\)$"
-                nil t)
-          (let ((cmd (match-string 1))
-                (help (match-string 2)))
-            (when (member help '(nil ""))
-              (setq help "..."))
-            (unless (assoc cmd cmds)
-              (push (list cmd help) cmds))))
-        (setq cmds
-              (sort cmds (lambda (a b) (string-lessp (car a) (car b)))))
-        (pcmpl-args-completion-table-with-annotations
-         cmds `(metadata (category . git-command)))))))
+                     (with-temp-buffer
+                       (pcmpl-args-process-file "git" "help" "-a")
+                       (goto-char (point-min))
+                       (let ((cmds (copy-sequence pcmpl-args-git-commands)))
+                         (while (re-search-forward
+                                 "^[\t\s]+\\([^[:space:]]+\\)[\t\s]*\\([^[:space:]]*\\)$"
+                                 nil t)
+                           (let ((cmd (match-string 1))
+                                 (help (match-string 2)))
+                             (when (member help '(nil ""))
+                               (setq help "..."))
+                             (unless (assoc cmd cmds)
+                               (push (list cmd help) cmds))))
+                         (setq cmds
+                               (sort cmds (lambda (a b) (string-lessp (car a) (car b)))))
+                         (pcmpl-args-completion-table-with-annotations
+                          cmds `(metadata (category . git-command)))))))
 
 (defun pcmpl-args-git-extract-argspecs-from-help (cmd)
   (pcmpl-args-cached (cons 'git-commands cmd) t
-    (ignore-errors (kill-buffer " *pcmpl-args-output*"))
-    (with-current-buffer (get-buffer-create " *pcmpl-args-output*")
-      (erase-buffer)
-      (let ((process-environment process-environment))
-        (push "MANWIDTH=10000" process-environment)
-        (pcmpl-args-process-file "git" "help" "--man" "--" cmd)
-        (goto-char (point-min))
-        (pcmpl-args-unbackspace-argspecs
-         (pcmpl-args-extract-argspecs-from-buffer))))))
+                     (ignore-errors (kill-buffer " *pcmpl-args-output*"))
+                     (with-current-buffer (get-buffer-create " *pcmpl-args-output*")
+                       (erase-buffer)
+                       (let ((process-environment process-environment))
+                         (push "MANWIDTH=10000" process-environment)
+                         (pcmpl-args-process-file "git" "help" "--man" "--" cmd)
+                         (goto-char (point-min))
+                         (pcmpl-args-unbackspace-argspecs
+                          (pcmpl-args-extract-argspecs-from-buffer))))))
 
 (defun pcmpl-args-git-refs ()
   (pcmpl-args-process-lines "git" "rev-parse" "--abbrev-ref" "--all"))
@@ -3250,86 +3250,86 @@ options found in its man page."
 (defun pcomplete/curl ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'curl t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage
-        "curl"
-        :filters (list
-                  (lambda ()
-                    ;; Replace options like `-o/--opt' with `-o, --opt'.
-                    (while (re-search-forward "^[ ]*-[^-]\\(/\\)--" nil t)
-                      (replace-match ", " nil nil nil 1)))))
-       `((argument * (("FILE" t)))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage
+                         "curl"
+                         :filters (list
+                                   (lambda ()
+                                     ;; Replace options like `-o/--opt' with `-o, --opt'.
+                                     (while (re-search-forward "^[ ]*-[^-]\\(/\\)--" nil t)
+                                       (replace-match ", " nil nil nil 1)))))
+                        `((argument * (("FILE" t)))))))))
 
 (defun pcomplete/dict ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'dict t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage "dict")
-       `((argument
-          * (("WORD"
-              (:lambda
-               (lambda (alist)
-                 (let ((w (car (last (cadr (assoc '* alist))))))
-                   (pcmpl-args-word-completions w)))))))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage "dict")
+                        `((argument
+                           * (("WORD"
+                               (:lambda
+                                (lambda (alist)
+                                  (let ((w (car (last (cadr (assoc '* alist))))))
+                                    (pcmpl-args-word-completions w)))))))))))))
 
 (defun pcomplete/enscript ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'enscript t
-     (pcmpl-args-make-argspecs
-      (append (pcmpl-args-extract-argspecs-from-manpage "enscript")
-	      `((argument * (("FILE" t)))))
-      :no-shared-args t))))
+                      (pcmpl-args-make-argspecs
+                       (append (pcmpl-args-extract-argspecs-from-manpage "enscript")
+                               `((argument * (("FILE" t)))))
+                       :no-shared-args t))))
 
 (defun pcomplete/gcc ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'gcc 60.0
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage "gcc")
-       `((argument * (("FILE" t)))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage "gcc")
+                        `((argument * (("FILE" t)))))))))
 
 ;; Redefines version in `pcmpl-gnu.el'.
 (defun pcomplete/gdb ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'gdb t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage "gdb")
-       `((argument 0 (("EXECUTABLE-FILE" (:eval (pcomplete-executables)))))
-	 (argument * (("FILE" t)))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage "gdb")
+                        `((argument 0 (("EXECUTABLE-FILE" (:eval (pcomplete-executables)))))
+                          (argument * (("FILE" t)))))))))
 
 (defun pcomplete/gprof ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'gprof t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage
-	"gprof"
-	:filters (list
-		  (lambda ()
-		    ;; Remove double quotes around options
-		    (while (re-search-forward "^\\([ ]*\\)\"\\(-.*\\)\"" nil t)
-		      (replace-match "\\1\\2")))))
-       `((argument * (("FILE" t)))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage
+                         "gprof"
+                         :filters (list
+                                   (lambda ()
+                                     ;; Remove double quotes around options
+                                     (while (re-search-forward "^\\([ ]*\\)\"\\(-.*\\)\"" nil t)
+                                       (replace-match "\\1\\2")))))
+                        `((argument * (("FILE" t)))))))))
 
 (defun pcomplete/grep ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'grep t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage "grep")
-       `((option ("-e" "--regexp=") (("PATTERN" none))
-		 :aliases (0)
-		 :help "use PATTERN for matching")
-	 (argument 0 (("PATTERN" none)) :excludes ("-e" "--regexp="))
-	 (argument * (("FILE" t)))))
-      :hints
-      `(("\\`\\(-d\\|--directories\\)=" ("read" "recurse" "skip"))
-	("\\`--binary-files=" ("binary" "text" "without-match"))
-	("\\`\\(-D\\|--devices\\)=" ("read" "skip"))
-	("\\`--colou?r=" ("yes" "no" "always" "never" "auto")))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage "grep")
+                        `((option ("-e" "--regexp=") (("PATTERN" none))
+                                  :aliases (0)
+                                  :help "use PATTERN for matching")
+                          (argument 0 (("PATTERN" none)) :excludes ("-e" "--regexp="))
+                          (argument * (("FILE" t)))))
+                       :hints
+                       `(("\\`\\(-d\\|--directories\\)=" ("read" "recurse" "skip"))
+                         ("\\`--binary-files=" ("binary" "text" "without-match"))
+                         ("\\`\\(-D\\|--devices\\)=" ("read" "skip"))
+                         ("\\`--colou?r=" ("yes" "no" "always" "never" "auto")))))))
 
 (defalias 'pcomplete/egrep 'pcomplete/grep)
 (defalias 'pcomplete/fgrep 'pcomplete/grep)
@@ -3341,48 +3341,48 @@ options found in its man page."
   (let ((pcomplete-help "(make)Top"))
     (pcmpl-args-pcomplete
      (pcmpl-args-cached 'make t
-       (pcmpl-args-make-argspecs
-	(append
-	 (pcmpl-args-extract-argspecs-from-manpage "make")
-	 `((argument * (("TARGET" (:eval (completion-table-in-turn
-					  (pcmpl-gnu-make-rule-names)
-					  (pcomplete-entries)))))))))))))
+                        (pcmpl-args-make-argspecs
+                         (append
+                          (pcmpl-args-extract-argspecs-from-manpage "make")
+                          `((argument * (("TARGET" (:eval (completion-table-in-turn
+                                                           (pcmpl-gnu-make-rule-names)
+                                                           (pcomplete-entries)))))))))))))
 
 (defun pcomplete/rsync ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'rsync t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-shell-command "rsync --help")
-       `((argument * (("FILE" t)))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-shell-command "rsync --help")
+                        `((argument * (("FILE" t)))))))))
 
 (defun pcomplete/sudo ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'sudo t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage "sudo")
-       `((argument 0 (("COMMAND" nil))
-		   :subparser pcmpl-args-command-subparser)))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage "sudo")
+                        `((argument 0 (("COMMAND" nil))
+                                    :subparser pcmpl-args-command-subparser)))))))
 
 (defun pcomplete/vlc ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'vlc t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-shell-command "vlc -H")
-       `((argument * (("FILE" t)))))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-shell-command "vlc -H")
+                        `((argument * (("FILE" t)))))))))
 
 
 ;; Redefines version in `pcmpl-unix.el'.
 (defun pcomplete/xargs ()
   (pcmpl-args-pcomplete
    (pcmpl-args-cached 'xargs t
-     (pcmpl-args-make-argspecs
-      (append
-       (pcmpl-args-extract-argspecs-from-manpage "xargs")
-       `((argument 0 (("COMMAND" nil))
-		   :subparser pcmpl-args-command-subparser)))))))
+                      (pcmpl-args-make-argspecs
+                       (append
+                        (pcmpl-args-extract-argspecs-from-manpage "xargs")
+                        `((argument 0 (("COMMAND" nil))
+                                    :subparser pcmpl-args-command-subparser)))))))
 
 (defalias 'pcomplete/configure 'pcmpl-args-pcomplete-on-help)
 (defalias 'pcomplete/nosetests 'pcmpl-args-pcomplete-on-help)
@@ -3598,12 +3598,12 @@ entered, it will be removed from returned list."
          (table (elt result 2))
          (_props (nthcdr 3 result)))
     (let ((comps
-	   (and result
-		(all-completions (substring line (1- beg) (1- end)) table))))
+           (and result
+                (all-completions (substring line (1- beg) (1- end)) table))))
       (if (called-interactively-p 'interactive)
-	  (with-output-to-temp-buffer "*pcmpl-args-completions*"
-	    (display-completion-list comps))
-	comps))))
+          (with-output-to-temp-buffer "*pcmpl-args-completions*"
+            (display-completion-list comps))
+        comps))))
 
 (defun pcmpl-args--debug-standalone ()
   "Print completions of the current command line arguments.
@@ -3635,9 +3635,9 @@ will print completions for `ls -'."
 (defun pcmpl-args--debug-pcomplete-commands (&optional regexp verbose)
   "Collect statistics for pcomplete/ commands."
   (interactive (list (read-regexp "Debug pcomplete/ commands matching regexp")
-		     current-prefix-arg))
+                     current-prefix-arg))
   (let* ((pcmpl-args-debug t)
-	 (regexp (or regexp ""))
+         (regexp (or regexp ""))
          (cmds
           (let (accum)
             ;; ;; Collect pcomplete/ commands from the current buffer.
@@ -3666,14 +3666,14 @@ will print completions for `ls -'."
     (with-current-buffer (get-buffer-create "*pcmpl-args-stats*")
       (goto-char (point-max))
       (unless (bolp) (insert "\n"))
-      (insert "\n;; COMMAND 	L-OPTS	S-OPTS	ARGS	SECONDS\n")
+      (insert "\n;; COMMAND   L-OPTS  S-OPTS  ARGS    SECONDS\n")
       (while cmds
         (let ((start (float-time)))
           (goto-char (point-max))
           (let* ((cmd (car cmds))
                  opt-cap-data opt-comps
                  arg-cap-data arg-comps)
-	    (pcmpl-args-cache-flush t)
+            (pcmpl-args-cache-flush t)
             (condition-case err
                 (setq opt-cap-data (pcmpl-args--debug-completion-at-point-data (concat cmd " -"))
                       opt-comps (all-completions "-" (elt opt-cap-data 2))
@@ -3698,17 +3698,17 @@ will print completions for `ls -'."
                      new-raw-argspecs
                      new-argspecs)
                 (dolist (c opt-comps)
-		  (push (list 'option
-			      (substring-no-properties
-			       (concat c (funcall (or afun (lambda (_s)
-							     "    <no description>"))
-						  c)))) new-raw-argspecs))
+                  (push (list 'option
+                              (substring-no-properties
+                               (concat c (funcall (or afun (lambda (_s)
+                                                             "    <no description>"))
+                                                  c)))) new-raw-argspecs))
                 (setq new-raw-argspecs (nreverse new-raw-argspecs)
                       new-argspecs (pcmpl-args-make-argspecs new-raw-argspecs))
                 (when verbose
-		  (insert
-		   (pcmpl-args-format-argspecs new-argspecs)
-		   "\n\n"))
+                  (insert
+                   (pcmpl-args-format-argspecs new-argspecs)
+                   "\n\n"))
                 (let ((new-long 0)
                       (new-short 0))
                   (dolist (spec new-argspecs)

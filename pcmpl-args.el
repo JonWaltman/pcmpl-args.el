@@ -3485,20 +3485,20 @@ return only directories."
 This list is filtered based on `ARGS', which is an alist with
 inserted command line argument.  If some gpg key was already
 entered, it will be removed from returned list."
-  ;; Should we use epg-list-keys to get keys?
-  (let ((rx "^\\(?:[^:]*:\\)\\{9\\}\\([^:]*\\).*?$"))
-    (with-temp-buffer
-      (pcmpl-args-process-file "gpg2" "--list-secret-keys" "--with-colons")
-      (goto-char (point-min))
-      (save-match-data
-        (while (search-forward-regexp rx nil t)
-          (replace-match "\\1")))
-      (forward-line 1)
-      (let (lines)
-        (while (progn (forward-line -1)
-                      (push (string-trim-right (thing-at-point 'line t)) lines)
-                      (not (bobp))))
-        (cl-set-difference lines (cadr (assq '* args)) :test #'string=)))))
+  ;; Dirty hack
+  (unless (boundp 'epa-protocol)
+    (require 'epa))
+
+  (let* ((context (epg-make-context epa-protocol))
+         (keys (epg-list-keys context nil 'secret))
+         (extract-fingerprints
+          (lambda (key)
+            (append
+             (mapcar #'epg-user-id-string (epg-key-user-id-list key))
+             (mapcar #'epg-sub-key-fingerprint (epg-key-sub-key-list key))))))
+    (cl-set-difference (mapcan extract-fingerprints keys)
+                       (cadr (assq '* args))
+                       :test #'string=)))
 
 (defun pcmpl-args-pass-subcommand-specs (subcommand)
   "Return specs for pass `SUBCOMMAND'."

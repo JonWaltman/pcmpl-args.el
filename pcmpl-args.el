@@ -3449,32 +3449,36 @@ It is suffixed with a slash."
                        (expand-file-name "~/.password-store"))))
     (concat directory "/")))
 
-(defun pcmpl-args-pass-find (&rest find-args)
+(defun pcmpl-args-pass-find (&optional type)
   "Return a list of password-store entries.
 By default, return all directories and files in password-store.
-These can be limited by `FIND-ARGS'.
+These can be limited by TYPE.
 
-`FIND-ARGS' is a list of find (GNU/findutils) arguments.  For
-example, to get only directories:
+If TYPE is :files, return only files.  If TYPE is :directories,
+return only directories."
+  (let ((dir (pcmpl-args-pass-prefix)))
 
-\(pcmpl-args-pass-find \"-type\" \"d\")"
-  (let* ((prefix (pcmpl-args-pass-prefix))
-         (args `("find" "-L" ,prefix
-                 "(" "-name" ".git*" "-o" "-name" ".gpg-id" ")" "-prune"
-                 "-o" ,@find-args "-print"))
-         (rx (concat "^" (regexp-quote prefix) "\\(.+?\\)\\(?:\\.gpg\\)?$")))
-    (with-temp-buffer
-      (apply #'pcmpl-args-process-file args)
-      (goto-char (point-min))
-      (save-match-data
-        (while (search-forward-regexp rx nil t)
-          (replace-match "\\1")))
-      (beginning-of-line)
-      (let (lines)
-        (while (progn (push (string-trim-right (thing-at-point 'line t)) lines)
-                      (forward-line -1)
-                      (not (bobp))))
-        lines))))
+    (cl-labels
+        ((no-git (dir) (not (string-suffix-p "/.git" dir)))
+         (chop-dir (entry) (string-remove-prefix dir entry))
+         (chop-ext (entry) (string-remove-suffix ".gpg" entry))
+         (chop (entry) (chop-dir (chop-ext entry)))
+         (dotp (file) (string-prefix-p "." (file-name-base file)))
+         (gpgp (file) (string-suffix-p ".gpg" file))
+         (dot-or-gpg-p (file) (or (dotp file) (gpgp file))))
+
+      (cl-case type
+        (:files
+         (thread-last (directory-files-recursively dir "\\.gpg\\'" nil #'no-git t)
+           (mapcar #'chop)))
+        (:directories
+         (thread-last (directory-files-recursively dir ".*" t #'no-git t)
+           (cl-delete-if #'dot-or-gpg-p)
+           (mapcar #'chop-dir)))
+        (t
+         (thread-last (directory-files-recursively dir ".*" t #'no-git t)
+           (cl-delete-if #'dotp)
+           (mapcar #'chop)))))))
 
 (defun pcmpl-args-pass-keys (args)
   "Return a list of gpg secret keys.
@@ -3500,7 +3504,7 @@ entered, it will be removed from returned list."
   "Return specs for pass `SUBCOMMAND'."
   (pcase subcommand
     ("edit"
-     '((argument 0 (("PASSNAME" (:eval (pcmpl-args-pass-find "-type" "f")))))))
+     '((argument 0 (("PASSNAME" (:eval (pcmpl-args-pass-find :files)))))))
 
     ("find"
      '((argument * (("PATTERN" none)))))
@@ -3521,7 +3525,7 @@ entered, it will be removed from returned list."
                    (pcmpl-args-command-subparser args specs seen)))))
 
     ("init"
-     '((option "-p, --path=SUBFOLDER" (("SUBFOLDER" (:eval (pcmpl-args-pass-find "-type" "d"))))
+     '((option "-p, --path=SUBFOLDER" (("SUBFOLDER" (:eval (pcmpl-args-pass-find :directories))))
                :help "GPGIDs are assigned for that specific SUBFOLDER of the store")
        (argument * (("GPGID" (:lambda pcmpl-args-pass-keys))))))
 
@@ -3532,7 +3536,7 @@ entered, it will be removed from returned list."
        (argument 0 (("PASSNAME" (:eval (pcmpl-args-pass-find)))))))
 
     ("ls"
-     '((argument 0 (("SUBFOLDER" (:eval (pcmpl-args-pass-find "-type" "d")))))))
+     '((argument 0 (("SUBFOLDER" (:eval (pcmpl-args-pass-find :directories)))))))
 
     ("rm"
      '((option "-r, --recursive" :help "Delete PASSNAME recursively if it is a directory")
@@ -3544,7 +3548,7 @@ entered, it will be removed from returned list."
                :help "Copy the first (or specified) line to the clipboard")
        (option "-q[LINENUMBER], --qrcode[=LINENUMBER]" (("LINENUMBER" none))
                :help "Display a QR code of the first (or specified) line")
-       (argument 0 (("PASSNAME" (:eval (pcmpl-args-pass-find "-type" "f")))))))
+       (argument 0 (("PASSNAME" (:eval (pcmpl-args-pass-find :files)))))))
 
     ((or "cp" "mv")
      '((option "-f, --force" :help "Silently overwrite NEWPATH if it exists")

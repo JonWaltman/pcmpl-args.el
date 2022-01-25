@@ -93,12 +93,11 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
+(require 'cl-lib)
 (require 'pcomplete)
 (require 'pcmpl-unix)
 (require 'pcmpl-linux)
-(require 'pcmpl-gnu)
-(require 'subr-x)
 
 (defgroup pcmpl-args nil
   "Refined argument completion for use with pcomplete."
@@ -3480,6 +3479,10 @@ return only directories."
            (cl-delete-if #'dotp)
            (mapcar #'chop)))))))
 
+(defvar epa-protocol)
+(declare-function epg-list-keys "epg")
+(declare-function epg-key-user-id-list "epg")
+(declare-function epg-key-sub-key-list "epg")
 (defun pcmpl-args-pass-keys (args)
   "Return a list of gpg secret keys.
 This list is filtered based on `ARGS', which is an alist with
@@ -3494,8 +3497,8 @@ entered, it will be removed from returned list."
          (extract-fingerprints
           (lambda (key)
             (append
-             (mapcar #'epg-user-id-string (epg-key-user-id-list key))
-             (mapcar #'epg-sub-key-fingerprint (epg-key-sub-key-list key))))))
+             (mapcar 'epg-user-id-string (epg-key-user-id-list key))
+             (mapcar 'epg-sub-key-fingerprint (epg-key-sub-key-list key))))))
     (cl-set-difference (mapcan extract-fingerprints keys)
                        (cadr (assq '* args))
                        :test #'string=)))

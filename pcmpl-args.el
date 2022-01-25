@@ -1664,6 +1664,7 @@ ARGSPECS should be value a created with
 `pcmpl-args-make-argspecs'."
   (noreturn
    (progn
+     (run-hooks 'pcomplete-try-first-hook)
      (pcmpl-args-debug "\n\n================================")
      (cl-assert (= pcomplete-last (1- (length pcomplete-args))) t)
      (let* ((result (pcmpl-args-parse-arguments (cdr pcomplete-args) argspecs))

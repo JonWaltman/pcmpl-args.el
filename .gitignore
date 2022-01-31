@@ -3,3 +3,5 @@ TAGS
 *~
 \#*
 *.elc
+/pcmpl-args-autoloads.el
+/pcmpl-args-pkg.el

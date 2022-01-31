@@ -7,7 +7,6 @@
 ;; Keywords: abbrev completion convenience processes terminals unix
 ;; Created: 25 Jul 2012
 ;; Version: 0.1.3
-;; Compatibility: GNU Emacs: 24.x
 ;; Package-Requires: ((emacs "25.1"))
 
 ;; This file is not part of GNU Emacs.
@@ -106,26 +105,22 @@
 (defcustom pcmpl-args-debug nil
   "Non-nil means to print debugging info to *pcmpl-args-debug*.
 See also `pcmpl-args-debug-parse-help'."
-  :type 'boolean
-  :group 'pcmpl-args)
+  :type 'boolean)
 
 (defcustom pcmpl-args-debug-parse-help nil
   "Non-nil to highlight matches when parsing help buffers.
 See `pcmpl-args-parse-help-buffer'."
-  :type 'boolean
-  :group 'pcmpl-args)
+  :type 'boolean)
 
 (defcustom pcmpl-args-cache-default-duration 10.0
   "Default number of seconds to cache completions.
 Does not apply to some completions that are cached for longer
 periods of time.  See `pcmpl-args-cache-max-duration'."
-  :type 'float
-  :group 'pcmpl-args)
+  :type 'float)
 
 (defcustom pcmpl-args-cache-max-duration 100.0
   "Maximum number of seconds to cache completions."
-  :type 'float
-  :group 'pcmpl-args)
+  :type 'float)
 
 (defcustom pcmpl-args-annotation-style 'long
   "Control how completions are annotated.
@@ -140,8 +135,7 @@ nil
     Limited descriptions (if available)."
   :type '(choice (const nil)
                  (const long)
-                 (const short))
-  :group 'pcmpl-args)
+                 (const short)))
 
 
 
@@ -154,7 +148,7 @@ performed if variable `pcmpl-args-debug' is non-nil."
   (when pcmpl-args-debug
     (with-current-buffer (get-buffer-create "*pcmpl-args-debug*")
       (goto-char (point-max))
-      (insert (apply 'format (cons format args))
+      (insert (apply #'format (cons format args))
               "\n"))))
 
 (defun pcmpl-args-strip (string)
@@ -185,7 +179,7 @@ matching substring, and substring after the match."
   "Call PROGRAM with ARGS using `process-file' and insert the output.
 If the exit status is non-zero, an error is signaled."
   (pcmpl-args-debug "!pcmpl-args-process-file: %S" (cons program args))
-  (let* ((retcode (apply 'process-file program nil t nil args)))
+  (let* ((retcode (apply #'process-file program nil t nil args)))
     (when (not (equal 0 retcode))
       (let ((pcmpl-args-debug t))
         (pcmpl-args-debug
@@ -199,7 +193,7 @@ If the exit status is non-zero, an error is signaled."
   "PROGRAM and ARGS are the same as `process-lines'.
 Logging is enabled if variable `pcmpl-args-debug' is NON NIL."
   (pcmpl-args-debug "!process-lines: %S %S" program args)
-  (apply 'process-lines program args))
+  (apply #'process-lines program args))
 
 (defun pcmpl-args-unbackspace-string (string)
   "Remove ^H characters from STRING."
@@ -478,7 +472,7 @@ The value returned can be passed to `pcmpl-args-pcomplete'."
 
 (defun pcmpl-args--make-argspec-argument (name &optional props)
   (cl-assert (or (numberp name) (memq name '(*))) t)
-  (list (apply 'list :name name :type 'argument (copy-sequence props))))
+  (list (apply #'list :name name :type 'argument (copy-sequence props))))
 
 (defun pcmpl-args--make-argspec-option (options-list &optional plist no-share-args)
   (when (atom options-list) (setq options-list (list options-list)))
@@ -777,7 +771,7 @@ Returns a list of cons cells of the form:
 ARGS are passed to `pcmpl-args-parse-help-buffer'."
   (save-excursion
     (goto-char (point-min))
-    (let ((opt-doc-alist (apply 'pcmpl-args-parse-help-buffer args))
+    (let ((opt-doc-alist (apply #'pcmpl-args-parse-help-buffer args))
           accum)
       (dolist (opt opt-doc-alist)
         (push (list 'option
@@ -794,7 +788,7 @@ ARGS are passed to `pcmpl-args-parse-help-buffer'."
     (erase-buffer)
     (pcmpl-args-process-file
      shell-file-name shell-command-switch shell-command)
-    (apply 'pcmpl-args-extract-argspecs-from-buffer args)))
+    (apply #'pcmpl-args-extract-argspecs-from-buffer args)))
 
 (defvar pcmpl-args-man-function 'pcmpl-args-default-man-function
   "Function called to generate the manual for a command.
@@ -818,12 +812,12 @@ ARGS are passed to `pcmpl-args-parse-help-buffer'."
     (funcall pcmpl-args-man-function name)
     (goto-char (point-min))
     (pcmpl-args-unbackspace-argspecs
-     (apply 'pcmpl-args-extract-argspecs-from-buffer args))))
+     (apply #'pcmpl-args-extract-argspecs-from-buffer args))))
 
 (defun pcmpl-args-format-argspec (spec &optional short)
   "Return a string for displaying SPEC.
 If SHORT is NON NIL, return a string without :help."
-  (let* ((metavars (mapcar 'car (plist-get spec :actions)))
+  (let* ((metavars (mapcar #'car (plist-get spec :actions)))
          (type (plist-get spec :type))
          name)
     (cond ((member type '(argument))
@@ -866,7 +860,7 @@ If SHORT is NON NIL, return a string without :help."
 
 (defun pcmpl-args-format-argspecs (specs)
   "Return a string for displaying SPECS."
-  (mapconcat 'pcmpl-args-format-argspec specs "\n"))
+  (mapconcat #'pcmpl-args-format-argspec specs "\n"))
 
 (defun pcmpl-args-parse-arguments (arguments argspecs)
   "Parse the words in ARGUMENTS as specified by ARGSPECS.
@@ -1024,7 +1018,7 @@ Returns a list containing the following:
                             (plist-get spec :name)
                             (pp-to-string arguments)
                             (pp-to-string seen))
-          (apply 'pcmpl-args--sanity-check
+          (apply #'pcmpl-args--sanity-check
                  (funcall (plist-get spec :subparser)
                           arguments argspecs seen)))
       (let ((i 0)
@@ -1130,7 +1124,7 @@ Returns a list containing the following:
                             (plist-get argspec :name)
                             (pp-to-string arguments)
                             (pp-to-string seen))
-          (apply 'pcmpl-args--sanity-check
+          (apply #'pcmpl-args--sanity-check
                  (funcall (plist-get argspec :subparser)
                           arguments argspecs seen)))
       (list arguments argspecs seen))))
@@ -1431,9 +1425,9 @@ mapping completions to their descriptions."
     (if (not (hash-table-p alist-or-hash))
         (progn
           (setq maxwidth
-                (apply 'max (mapcar (lambda (cell)
-                                      (length (car cell)))
-                                    alist-or-hash))
+                (apply #'max (mapcar (lambda (cell)
+                                       (length (car cell)))
+                                     alist-or-hash))
                 maxwidth (max min-maxwidth (min max-maxwidth maxwidth)))
           (dolist (cell alist-or-hash)
             (let ((k (car cell))
@@ -1832,7 +1826,7 @@ options found in its man page."
      `((argument 0 (("COMMAND" nil))
                  :subparser pcmpl-args-command-subparser))))))
 
-(defalias 'pcomplete/cp 'pcomplete/mv)
+(defalias 'pcomplete/cp #'pcomplete/mv)
 
 (defvar pcmpl-args-date-format-sequences
   '(("%%" "a literal %")
@@ -1960,7 +1954,7 @@ options found in its man page."
                 (pcmpl-args-size-suffix-completions)
                 lh t)))))))
 
-(defalias 'pcomplete/dir 'pcomplete/ls)
+(defalias 'pcomplete/dir #'pcomplete/ls)
 
 (defun pcomplete/echo ()
   (pcmpl-args-pcomplete
@@ -1978,7 +1972,7 @@ options found in its man page."
      `((argument 0 (("COMMAND" nil))
                  :subparser pcmpl-args-command-subparser))))))
 
-(defalias 'pcomplete/false 'pcomplete/true)
+(defalias 'pcomplete/false #'pcomplete/true)
 
 (defun pcomplete/groups ()
   (pcmpl-args-pcomplete
@@ -1987,9 +1981,9 @@ options found in its man page."
      (pcmpl-args-extract-argspecs-from-manpage "groups")
      `((argument * (("USERNAME" (:eval (pcmpl-unix-user-names))))))))))
 
-(defalias 'pcomplete/id 'pcomplete/groups)
+(defalias 'pcomplete/id #'pcomplete/groups)
 
-(defalias 'pcomplete/ln 'pcomplete/mv)
+(defalias 'pcomplete/ln #'pcomplete/mv)
 
 (defun pcomplete/ls ()
   (pcmpl-args-pcomplete
@@ -2080,7 +2074,7 @@ options found in its man page."
       (argument * (("FILE" t)))))))
 
 ;; Redefines version in `pcmpl-unix.el'.
-(defalias 'pcomplete/rm 'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/rm #'pcmpl-args-pcomplete-on-man)
 
 ;; Redefines version in `pcmpl-unix.el'.
 (defun pcomplete/rmdir ()
@@ -2199,67 +2193,67 @@ options found in its man page."
 
 (defun pcomplete/true ())
 
-(defalias 'pcomplete/vdir 'pcomplete/ls)
+(defalias 'pcomplete/vdir #'pcomplete/ls)
 
-(defalias 'pcomplete/basename 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/cat 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/cksum 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/comm 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/csplit 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/cut 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/df 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/dircolors 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/dirname 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/du 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/expand 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/expr 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/factor 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/fmt 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/fold 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/head 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/hostid 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/install 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/join 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/link 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/logname 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/md5sum 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/mkdir 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/mkfifo 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/mknod 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/mktemp 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/nl 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/od 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/paste 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/pathchk 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/pinky 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/pr 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/ptx 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/pwd 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/readlink 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/seq 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/sha1sum 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/shred 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/sleep 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/split 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/stty 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/sum 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/sync 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/tac 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/tail 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/tee 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/touch 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/tr 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/tsort 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/tty 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/uname 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/unexpand 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/uniq 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/unlink 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/users 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/wc 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/whoami 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/who 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/yes 'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/basename #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/cat #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/cksum #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/comm #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/csplit #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/cut #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/df #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/dircolors #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/dirname #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/du #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/expand #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/expr #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/factor #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/fmt #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/fold #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/head #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/hostid #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/install #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/join #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/link #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/logname #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/md5sum #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/mkdir #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/mkfifo #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/mknod #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/mktemp #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/nl #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/od #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/paste #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/pathchk #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/pinky #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/pr #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/ptx #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/pwd #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/readlink #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/seq #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/sha1sum #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/shred #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/sleep #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/split #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/stty #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/sum #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/sync #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/tac #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/tail #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/tee #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/touch #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/tr #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/tsort #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/tty #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/uname #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/unexpand #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/uniq #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/unlink #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/users #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/wc #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/whoami #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/who #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/yes #'pcmpl-args-pcomplete-on-man)
 
 
 ;; Man page completion
@@ -2550,24 +2544,24 @@ options found in its man page."
                 :subparser pcmpl-args-command-subparser)))))
 
 ;; Redefines version in `pcmpl-unix.el'.
-(defalias 'pcomplete/time 'pcomplete/command)
+(defalias 'pcomplete/time #'pcomplete/command)
 
 ;; Redefines version in `pcmpl-unix.el'.
-(defalias 'pcomplete/which 'pcomplete/command)
+(defalias 'pcomplete/which #'pcomplete/command)
 
-(defalias 'pcomplete/coproc 'pcomplete/command)
-(defalias 'pcomplete/do 'pcomplete/command)
-(defalias 'pcomplete/elif 'pcomplete/command)
-(defalias 'pcomplete/else 'pcomplete/command)
-(defalias 'pcomplete/exec 'pcomplete/command)
-(defalias 'pcomplete/if 'pcomplete/command)
-(defalias 'pcomplete/then 'pcomplete/command)
-(defalias 'pcomplete/until 'pcomplete/command)
-(defalias 'pcomplete/whatis 'pcomplete/command)
-(defalias 'pcomplete/whence 'pcomplete/command)
-(defalias 'pcomplete/where 'pcomplete/command)
-(defalias 'pcomplete/whereis 'pcomplete/command)
-(defalias 'pcomplete/while 'pcomplete/command)
+(defalias 'pcomplete/coproc #'pcomplete/command)
+(defalias 'pcomplete/do #'pcomplete/command)
+(defalias 'pcomplete/elif #'pcomplete/command)
+(defalias 'pcomplete/else #'pcomplete/command)
+(defalias 'pcomplete/exec #'pcomplete/command)
+(defalias 'pcomplete/if #'pcomplete/command)
+(defalias 'pcomplete/then #'pcomplete/command)
+(defalias 'pcomplete/until #'pcomplete/command)
+(defalias 'pcomplete/whatis #'pcomplete/command)
+(defalias 'pcomplete/whence #'pcomplete/command)
+(defalias 'pcomplete/where #'pcomplete/command)
+(defalias 'pcomplete/whereis #'pcomplete/command)
+(defalias 'pcomplete/while #'pcomplete/command)
 
 
 ;; Compression tools
@@ -3215,9 +3209,9 @@ options found in its man page."
 
 ;; Miscellaneous commands
 
-(defalias 'pcomplete/etags 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/ctags 'pcomplete/etags)
-(defalias 'pcomplete/ctags-exuberant 'pcomplete/etags)
+(defalias 'pcomplete/etags #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/ctags #'pcomplete/etags)
+(defalias 'pcomplete/ctags-exuberant #'pcomplete/etags)
 
 (defun pcomplete/cmp ()
   (pcmpl-args-pcomplete
@@ -3330,9 +3324,9 @@ options found in its man page."
                          ("\\`\\(-D\\|--devices\\)=" ("read" "skip"))
                          ("\\`--colou?r=" ("yes" "no" "always" "never" "auto")))))))
 
-(defalias 'pcomplete/egrep 'pcomplete/grep)
-(defalias 'pcomplete/fgrep 'pcomplete/grep)
-(defalias 'pcomplete/rgrep 'pcomplete/grep)
+(defalias 'pcomplete/egrep #'pcomplete/grep)
+(defalias 'pcomplete/fgrep #'pcomplete/grep)
+(defalias 'pcomplete/rgrep #'pcomplete/grep)
 
 ;; Redefines version in `pcmpl-gnu.el'.
 (defun pcomplete/make ()
@@ -3383,43 +3377,43 @@ options found in its man page."
                         `((argument 0 (("COMMAND" nil))
                                     :subparser pcmpl-args-command-subparser)))))))
 
-(defalias 'pcomplete/configure 'pcmpl-args-pcomplete-on-help)
-(defalias 'pcomplete/nosetests 'pcmpl-args-pcomplete-on-help)
+(defalias 'pcomplete/configure #'pcmpl-args-pcomplete-on-help)
+(defalias 'pcomplete/nosetests #'pcmpl-args-pcomplete-on-help)
 
-(defalias 'pcomplete/a2ps 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/ack-grep 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/agrep 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/automake 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/awk 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/bash 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/bc 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/bison 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/cal 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/dc 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/diff 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/emacs 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/gawk 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/gperf 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/indent 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/locate 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/ld 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/ldd 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/m4 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/ncal 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/netstat 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/nm 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/objcopy 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/objdump 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/patch 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/pgrep 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/ps 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/readelf 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/sed 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/shar 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/strip 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/texindex 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/traceroute 'pcmpl-args-pcomplete-on-man)
-(defalias 'pcomplete/wget 'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/a2ps #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/ack-grep #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/agrep #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/automake #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/awk #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/bash #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/bc #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/bison #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/cal #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/dc #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/diff #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/emacs #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/gawk #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/gperf #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/indent #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/locate #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/ld #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/ldd #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/m4 #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/ncal #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/netstat #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/nm #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/objcopy #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/objdump #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/patch #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/pgrep #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/ps #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/readelf #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/sed #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/shar #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/strip #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/texindex #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/traceroute #'pcmpl-args-pcomplete-on-man)
+(defalias 'pcomplete/wget #'pcmpl-args-pcomplete-on-man)
 
 
 ;; Pass completion
@@ -3480,9 +3474,6 @@ return only directories."
            (mapcar #'chop)))))))
 
 (defvar epa-protocol)
-(declare-function epg-list-keys "epg")
-(declare-function epg-key-user-id-list "epg")
-(declare-function epg-key-sub-key-list "epg")
 (defun pcmpl-args-pass-keys (args)
   "Return a list of gpg secret keys.
 This list is filtered based on `ARGS', which is an alist with
@@ -3491,14 +3482,19 @@ entered, it will be removed from returned list."
   ;; Dirty hack
   (unless (boundp 'epa-protocol)
     (require 'epa))
+  (declare-function epg-list-keys "epg" (context &optional name mode))
+  (declare-function epg-key-user-id-list "epg" (x))
+  (declare-function epg-key-sub-key-list "epg" (x))
+  (declare-function epg-sub-key-fingerprint "epg" (x))
+  (declare-function epg-user-id-string "epg" (x))
 
   (let* ((context (epg-make-context epa-protocol))
          (keys (epg-list-keys context nil 'secret))
          (extract-fingerprints
           (lambda (key)
             (append
-             (mapcar 'epg-user-id-string (epg-key-user-id-list key))
-             (mapcar 'epg-sub-key-fingerprint (epg-key-sub-key-list key))))))
+             (mapcar #'epg-user-id-string (epg-key-user-id-list key))
+             (mapcar #'epg-sub-key-fingerprint (epg-key-sub-key-list key))))))
     (cl-set-difference (mapcan extract-fingerprints keys)
                        (cadr (assq '* args))
                        :test #'string=)))
@@ -3665,7 +3661,7 @@ will print completions for `ls -'."
                           (string-match-p regexp
                                           (match-string 1 (symbol-name s))))
                  (push (match-string 1 (symbol-name s)) accum))))
-            (sort (delete-dups (nreverse accum)) 'string-lessp)))
+            (sort (delete-dups (nreverse accum)) #'string-lessp)))
          (n-cmds (length cmds))
          (start-time (float-time))
          failed-cmds)

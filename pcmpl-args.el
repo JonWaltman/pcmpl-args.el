@@ -97,6 +97,7 @@
 (require 'pcomplete)
 (require 'pcmpl-unix)
 (require 'pcmpl-linux)
+(require 'pcmpl-gnu)
 
 (defgroup pcmpl-args nil
   "Refined argument completion for use with pcomplete."
